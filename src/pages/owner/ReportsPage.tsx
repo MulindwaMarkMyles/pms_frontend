@@ -70,12 +70,10 @@ export default function ReportsPage() {
     }
   };
 
-  const mobilescreenwidth = window.innerWidth;
-
   const renderPaymentReport = () => (
-    <div className="space-y-6 sm:space-y-8 max-w-[1200px] sm:max-w-[90%] mx-auto pb-24 w-full">
+    <div className="space-y-8  mx-auto pb-24 w-full">
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-4 gap-6">
         <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -128,85 +126,42 @@ export default function ReportsPage() {
         <div className="px-4 md:px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900">Estate Payment Performance</h3>
         </div>
-        <div className="p-4 md:p-6">
+        <div className="p-6">
           {/* Desktop Table */}
-          { window.innerWidth >= 768 ? (
-          <div className=" md:block">
-            <div className="overflow-x-auto -mx-4 md:mx-0">
-              <table className=" w-full text-xs md:text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Estate</th>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Payments</th>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Total Amount</th>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Paid Amount</th>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Collection Rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paymentReport?.estates?.map((estate: any, index: number) => (
-                    <tr key={index} className="border-b border-gray-100">
-                      <td className="py-3 font-medium">{estate.estate_name}</td>
-                      <td className="py-3">{estate.payments}</td>
-                      <td className="py-3">{formatCurrency(estate.total_amount)}</td>
-                      <td className="py-3 text-green-600">{formatCurrency(estate.paid_amount)}</td>
-                      <td className="py-3">
-                        <div className="flex items-center">
-                          <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                            <div
-                              className="bg-green-600 h-2 rounded-full"
-                              style={{ width: `${estate.collection_rate}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs">{estate.collection_rate}%</span>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Estate</th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Payments</th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Total Amount</th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Paid Amount</th>
+                  <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Collection Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paymentReport?.estates?.map((estate: any, index: number) => (
+                  <tr key={index} className="border-b border-gray-100">
+                    <td className="py-3 font-medium">{estate.estate_name}</td>
+                    <td className="py-3">{estate.payments}</td>
+                    <td className="py-3">{formatCurrency(estate.total_amount)}</td>
+                    <td className="py-3 text-green-600">{formatCurrency(estate.paid_amount)}</td>
+                    <td className="py-3">
+                      <div className="flex items-center">
+                        <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                          <div
+                            className="bg-green-600 h-2 rounded-full"
+                            style={{ width: `${estate.collection_rate}%` }}
+                          ></div>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>) : null}
-
-          {/* Mobile Card List */}
-          {window.innerWidth < 768 ? (
-          <div className="space-y-3">
-            {(!paymentReport?.estates || paymentReport?.estates?.length === 0) && (
-              <div className="text-center py-6 text-gray-500 text-sm">No estate data available</div>
-            )}
-            {paymentReport?.estates?.map((estate: any, i: number) => (
-              <div key={i} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-semibold text-gray-900">{estate.estate_name}</p>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                    {estate.collection_rate}%
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
-                  <div className="flex flex-col">
-                    <span className="text-gray-500">Payments</span>
-                    <span className="font-medium">{estate.payments}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-gray-500">Total</span>
-                    <span className="font-medium">{formatCurrency(estate.total_amount)}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-gray-500">Paid</span>
-                    <span className="font-medium text-green-600">{formatCurrency(estate.paid_amount)}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
-                      <div
-                        className="h-2 rounded-full bg-green-600"
-                        style={{ width: `${estate.collection_rate}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>) : null}
+                        <span className="text-xs">{estate.collection_rate}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -254,7 +209,7 @@ export default function ReportsPage() {
           <h3 className="text-lg md:text-xl font-semibold text-gray-900">Estate Occupancy Breakdown</h3>
         </div>
         <div className="p-4 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 gap-6">
             {occupancyReport?.estate_breakdown?.map((estate: any, index: number) => (
               <div key={index} className="p-4 border border-gray-200 rounded-lg">
                 <h4 className="font-semibold text-lg mb-3">{estate.estate_name}</h4>
@@ -283,7 +238,7 @@ export default function ReportsPage() {
   const renderComplaintReport = () => (
     <div className="space-y-6">
       {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-4 gap-6">
         <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
@@ -332,8 +287,8 @@ export default function ReportsPage() {
         <div className="px-4 md:px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900">Complaint Categories</h3>
         </div>
-        <div className="p-4 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div className="p-6">
+          <div className="grid grid-cols-2 gap-6">
             {complaintReport?.complaint_categories?.map((category: any, index: number) => (
               <div key={index} className="p-4 border border-gray-200 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
@@ -361,8 +316,8 @@ export default function ReportsPage() {
           <div className="px-4 md:px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg md:text-xl font-semibold text-gray-900">Recent Trends (Last 30 Days)</h3>
           </div>
-            <div className="p-4 md:p-6">
-              <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <p className="text-2xl font-bold text-blue-600">{complaintTrends.new_complaints}</p>
                   <p className="text-sm text-gray-600">New Complaints</p>
@@ -384,11 +339,10 @@ export default function ReportsPage() {
         <div className="px-4 md:px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900">Expiring Tenancies</h3>
         </div>
-        <div className="p-4 md:p-6">
+        <div className="p-6">
           {/* Desktop Table */}
-          {mobilescreenwidth > 768 ? (
-          <div className="md:block overflow-x-auto -mx-4 md:mx-0">
-            <table className="w-full text-xs md:text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left text-xs font-medium text-gray-500 uppercase pb-2">Tenant</th>
@@ -423,125 +377,134 @@ export default function ReportsPage() {
                 ))}
               </tbody>
             </table>
-          </div>) : null}
-
-          {/* Mobile Card List */}
-          { mobilescreenwidth <= 768 ? (
-          <div className="md:hidden space-y-3">
-            {expiringTenants.length === 0 && (
-              <div className="text-center py-6 text-gray-500 text-sm">No expiring tenancies in range</div>
-            )}
-            {expiringTenants.map((tenant: any, i: number) => (
-              <div key={i} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-semibold text-gray-900">{tenant.tenant_name}</p>
-                  <span className={`text-[10px] px-2 py-0.5 rounded ${
-                      tenant.days_until_expiry <= 0 
-                        ? 'bg-red-100 text-red-700' 
-                        : tenant.days_until_expiry <= 30
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-green-100 text-green-700'
-                    }`}>
-                    {tenant.days_until_expiry <= 0 
-                      ? `Expired ${Math.abs(tenant.days_until_expiry)}d`
-                      : `${tenant.days_until_expiry}d left`}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600 mb-2">{tenant.apartment} • {tenant.estate}</p>
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-gray-500">Lease End</span>
-                  <span className="font-medium">{new Date(tenant.lease_end).toLocaleDateString()}</span>
-                </div>
-              </div>
-            ))}
           </div>
-          ) : null}
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-[1200px] mx-auto pb-24">
-      {/* Header */}
-      <div className="px-1">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Reports & Analytics</h1>
-        <p className="text-gray-600 mt-1 text-sm">Comprehensive property management reports</p>
+    <div className="min-h-screen  p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+      {/* Creative SVG Blobs */}
+      {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
+        </svg>
       </div>
+      <div className="absolute top-40 right-32 w-36 h-36 opacity-15" style={{ transform: 'rotate(-30deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 20c15-5 35 5 40 25s-5 35-25 40S15 75 10 55 15 25 30 20z" fill="#10b981" />
+        </svg>
+      </div>
+      <div className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10" style={{ transform: 'rotate(60deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 30c10-10 30-10 40 0s10 30 0 40-30 10-40 0S10 40 20 30z" fill="#f59e0b" />
+        </svg>
+      </div>
+      <div className="absolute top-1/3 right-10 w-40 h-40 opacity-25" style={{ transform: 'rotate(120deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 10c15 5 25 25 20 40s-25 25-40 20S5 55 10 40 25 5 40 10z" fill="#ef4444" />
+        </svg>
+      </div>
+      <div className="absolute bottom-10 right-1/3 w-52 h-52 opacity-20" style={{ transform: 'rotate(-45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
+        </svg>
+      </div> */}
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="space-y-8 mx-auto pb-24">
+          {/* Enhanced Header */}
+          <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
+            <div className="absolute -top-14 -right-14 w-72 h-72 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
+            <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                  <BarChart3 className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                    Reports & Analytics
+                  </h1>
+                  <p className="text-gray-600 text-sm lg:text-base">
+                    Comprehensive property management reports
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      {/* Report Controls */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:flex-wrap gap-6 md:items-end">
-          {/* Report Type Selection */}
-          <div className="w-full md:w-auto">
-            <label className="block text-xs font-medium text-gray-700 mb-2">Report Type</label>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-              {reportTypes.map(type => (
-                <button
-                  key={type.id}
-                  onClick={() => setReportType(type.id as any)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap ${
-                    reportType === type.id
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <span className="hidden sm:inline">{type.icon}</span>
-                  <span>{type.label}</span>
+          {/* Report Controls */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+            <div className="flex gap-6 items-end">
+              {/* Report Type Selection */}
+              <div className="w-auto">
+                <label className="block text-xs font-medium text-gray-700 mb-2">Report Type</label>
+                <div className="flex gap-2">
+                  {reportTypes.map(type => (
+                    <button
+                      key={type.id}
+                      onClick={() => setReportType(type.id as any)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap ${
+                        reportType === type.id
+                          ? 'bg-blue-600 text-white shadow'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {type.icon}
+                      <span>{type.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date Range Selection */}
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={dateRange.start_date}
+                  onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+                <span className="flex items-center justify-center text-gray-500 text-sm">to</span>
+                <input
+                  type="date"
+                  value={dateRange.end_date}
+                  onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+
+              {/* Export Button */}
+              <div className="ml-auto">
+                <button className="px-4 py-2 bg-green-600 text-black rounded-lg hover:bg-green-700 text-sm flex items-center gap-2">
+                  <Download className="w-4 h-4" />
+                  Export
                 </button>
-              ))}
+              </div>
             </div>
           </div>
 
-          {/* Date Range Selection */}
-          <div className="flex flex-col gap-2 w-full sm:w-auto">
-            <label className="block text-xs font-medium text-gray-700">Date Range</label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="date"
-                value={dateRange.start_date}
-                onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm w-full sm:w-auto"
-              />
-              <span className="flex items-center justify-center text-gray-500 text-xs sm:text-sm">to</span>
-              <input
-                type="date"
-                value={dateRange.end_date}
-                onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm w-full sm:w-auto"
-              />
-            </div>
-          </div>
-
-          {/* Export Button */}
-          <div className="md:ml-auto">
-            <button className="w-full md:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs sm:text-sm flex items-center gap-2 justify-center">
-              <Download className="w-4 h-4" />
-              Export
-            </button>
+          {/* Report Content */}
+          <div>
+            {isLoading() ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-12">
+                <div className="text-center">
+                  <div className="text-2xl mb-2 flex justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                  </div>
+                  <p className="text-gray-600">Loading report data...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="px-1">
+                {reportType === 'payments' && renderPaymentReport()}
+                {reportType === 'occupancy' && renderOccupancyReport()}
+                {reportType === 'complaints' && renderComplaintReport()}
+                {reportType === 'tenancy' && renderTenancyReport()}
+              </div>
+            )}
           </div>
         </div>
-      </div>
-
-      {/* Report Content */}
-      <div>
-        {isLoading() ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-10 md:p-12">
-            <div className="text-center">
-              <div className="text-2xl mb-2 flex justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-              </div>
-              <p className="text-gray-600">Loading report data...</p>
-            </div>
-          </div>
-        ) : (
-          <div className="px-1">
-            {reportType === 'payments' && renderPaymentReport()}
-            {reportType === 'occupancy' && renderOccupancyReport()}
-            {reportType === 'complaints' && renderComplaintReport()}
-            {reportType === 'tenancy' && renderTenancyReport()}
-          </div>
-        )}
       </div>
     </div>
   );

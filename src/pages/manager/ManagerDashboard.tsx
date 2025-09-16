@@ -7,6 +7,7 @@ import ComplaintsPage from './ComplaintsPage';
 import ManagerSidebar from '../../components/manager/ManagerSidebar';
 import type { DashboardPage } from '../../components/manager/ManagerSidebar';
 import { useManagerDashboardData } from '../../hooks/useManagerDashboardData';
+import Beams from '../../components/background';
 
 export default function ManagerDashboard() {
 	const { isAuthenticated, isLoading } = useManagerGuard();
@@ -31,19 +32,51 @@ export default function ManagerDashboard() {
 	if (activePage === 'complaints') return <div className="flex"><ManagerSidebar active={activePage} onChange={setActivePage} /><div className="flex-1"><ComplaintsPage /></div></div>;
 
 	return (
-		<div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-blue-50" style={{ paddingTop:'100px'}}>
+
+		<div className="width-auto flex relative overflow-hidden" style={{ paddingTop:'100px' }}>
+			{/* Creative SVG Blobs */}
+			{/* <div className="absolute top-10 left-20 w-148 h-148 opacity-20" style={{ transform: 'rotate(45deg)' }}>
+				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+					<path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
+				</svg>
+			</div>
+			<div className="absolute top-120 left-80 w-148 h-148 opacity-20" style={{ transform: 'rotate(45deg)' }}>
+				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+					<path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
+				</svg>
+			</div>
+			<div className="absolute top-40 right-32 w-156 h-156 opacity-15" style={{ transform: 'rotate(-30deg)' }}>
+				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+					<path d="M30 20c15-5 35 5 40 25s-5 35-25 40S15 75 10 55 15 25 30 20z" fill="#10b981" />
+				</svg>
+			</div>
+			<div className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10" style={{ transform: 'rotate(60deg)' }}>
+				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+					<path d="M20 30c10-10 30-10 40 0s10 30 0 40-30 10-40 0S10 40 20 30z" fill="#f59e0b" />
+				</svg>
+			</div>
+			<div className="absolute top-1/3 right-10 w-40 h-40 opacity-25" style={{ transform: 'rotate(120deg)' }}>
+				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+					<path d="M40 10c15 5 25 25 20 40s-25 25-40 20S5 55 10 40 25 5 40 10z" fill="#ef4444" />
+				</svg>
+			</div>
+			<div className="absolute bottom-10 right-1/3 w-52 h-52 opacity-20" style={{ transform: 'rotate(-45deg)' }}>
+				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+					<path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
+				</svg>
+			</div> */}
 			<ManagerSidebar active={activePage} onChange={setActivePage} />
 
-			<main className="flex-1 p-4 lg:p-6 xl:p-8 space-y-6 xl:space-y-8 max-w-[1200px] mx-auto w-full">
+			<main className="flex-1 p-4 lg:p-6 xl:p-12 space-y-6 xl:space-y-8 mx-auto w-full max-w-7xl relative z-10">
 				{/* Top Cluster */}
 				<TopCluster dashboard={dashboard} />
 				{/* Secondary Grid */}
 				<div className="grid grid-cols-12 gap-6 items-start">
-					<div className="col-span-12 lg:col-span-8 space-y-6">
+					<div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-6">
 						<PerformanceOverview />
 						<OpenComplaints />
 					</div>
-					<div className="col-span-12 lg:col-span-4 space-y-6">
+					<div className="col-span-12 lg:col-span-4 xl:col-span-3 space-y-6">
 						<SystemStatus dashboard={dashboard} />
 						<PerformanceTips />
 					</div>
@@ -57,13 +90,14 @@ export default function ManagerDashboard() {
 function TopCluster({dashboard}:{dashboard:any}) {
 	return (
 		<div className="relative grid grid-cols-12 gap-6">
-			<div className="col-span-12 lg:col-span-7 xl:col-span-8 relative z-10">
-				<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden">
+			<div className="col-span-12 lg:col-span-7 xl:col-span-9 relative z-10">
+				<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden" style={{ backgroundImage: 'url(/dashboard-header-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'right' }}>
 					<div className="absolute -top-10 -right-10 w-52 h-52 bg-gradient-to-br from-blue-500/10 to-blue-700/10 rounded-full blur-3xl" />
 					<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
 						<div className="flex items-center gap-5">
-							<div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-xl">
-								<span className="material-icons text-white text-3xl">apartment</span>
+							<div className="p-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-xl">
+								{/* <span className="material-icons text-white text-3xl">apartment</span> */}
+								<img src="/logo.png" alt="Edith Estates Logo" className="w-24 h-12 rounded-2xl" />
 							</div>
 							<div>
 								<h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 bg-clip-text text-transparent">Edith Estates</h1>
@@ -85,11 +119,11 @@ function TopCluster({dashboard}:{dashboard:any}) {
 						<Metric label="ESTATES" icon="domain" color="text-blue-500" value={dashboard.estates} desc="Active portfolios" />
 						<Metric label="TENANTS" icon="group" color="text-indigo-500" value={dashboard.tenants} desc="Current occupants" />
 						<Metric label="OPEN CASES" icon="report" color="text-amber-500" value={dashboard.pendingComplaints} desc="Complaints pending" />
-						<Metric label="REVENUE (M)" icon="paid" color="text-emerald-500" value={`USh ${dashboard.monthlyRevenue.toLocaleString()}d`} desc="This month" />
+						<Metric label="REVENUE (M)" icon="paid" color="text-emerald-500" value={`USh ${dashboard.monthlyRevenue.toLocaleString()}`} desc="This month" />
 					</div>
 				</div>
 			</div>
-			<div className="col-span-12 lg:col-span-5 xl:col-span-4 space-y-6">
+			<div className="col-span-12 lg:col-span-5 xl:col-span-3 space-y-6">
 				<FinancialSnapshot dashboard={dashboard} />
 				<QuickActivity />
 			</div>
@@ -138,12 +172,12 @@ const recentActivity = [
 
 function QuickActivity() {
 	return (
-		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6">
+		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6" style={{ backgroundImage: 'url(/activity-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'top left' }}>
 			<h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2 text-sm"><span className="material-icons text-base text-blue-600">history_toggle_off</span>Quick Activity</h3>
 			<div className="space-y-4 max-h-72 overflow-y-auto pr-2 custom-scroll">
 				{recentActivity.slice(0,6).map((a,i) => (
 					<div key={i} className="flex items-start gap-3 group">
-						<div className={`p-2 rounded-xl shadow ${a.status === 'success' ? 'bg-emerald-500/90' : a.status === 'warning' ? 'bg-amber-500/90' : 'bg-blue-500/90'}`}><span className="material-icons text-white text-sm">{a.icon}</span></div>
+						<img src={`/activity-${a.type}.jpg`} alt="Activity Image" className="w-10 h-10 rounded-xl object-cover" />
 						<div className="flex-1"><p className="text-sm text-gray-800 leading-snug">{a.message}</p><p className="text-[11px] text-gray-500 flex items-center gap-1 mt-1"><span className="material-icons text-[10px]">schedule</span>{a.time}</p></div>
 						<button className="opacity-0 group-hover:opacity-100 transition p-1 rounded-lg hover:bg-white/60"><span className="material-icons text-gray-400 text-sm">more_horiz</span></button>
 					</div>
@@ -175,14 +209,14 @@ function PerformanceOverview() {
 					</div>
 				))}
 			</div>
-			<div className="h-60 flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl">Analytics Chart Placeholder</div>
+			<div className="h-60 flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl" style={{ backgroundImage: 'url(/analytics-chart.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>Analytics Chart Placeholder</div>
 		</div>
 	);
 }
 
 function OpenComplaints() {
 	return (
-		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6">
+		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6" style={{ backgroundImage: 'url(/complaints-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'bottom right', backgroundBlendMode: 'overlay' }}>
 			<div className="flex items-center justify-between mb-6">
 				<h3 className="font-semibold text-gray-700 flex items-center gap-2"><span className="material-icons text-blue-600 text-base">priority_high</span>Open Complaints</h3>
 				<button className="text-xs px-3 py-1 rounded-lg bg-white/60 border border-white/30 hover:bg-white/80 transition flex items-center gap-1 text-gray-600"><span className="material-icons text-[14px]">open_in_full</span>View All</button>
@@ -190,7 +224,7 @@ function OpenComplaints() {
 			<div className="space-y-4 max-h-72 overflow-y-auto pr-2">
 				{recentActivity.filter(a=>a.type==='complaint').map((c,i)=>(
 					<div key={i} className="p-4 rounded-2xl bg-white/60 backdrop-blur border border-white/30 hover:shadow flex items-start gap-3">
-						<div className="p-2 rounded-xl bg-amber-500/90 text-white shadow"><span className="material-icons text-sm">report_problem</span></div>
+						<img src="/property-leak.jpg" alt="Complaint Image" className="w-12 h-12 rounded-xl object-cover" />
 						<div className="flex-1">
 							<p className="text-sm font-medium text-gray-800">{c.message}</p>
 							<p className="text-[11px] text-gray-500 mt-1 flex items-center gap-1"><span className="material-icons text-[10px]">schedule</span>{c.time}</p>

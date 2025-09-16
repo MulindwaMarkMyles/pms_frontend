@@ -422,15 +422,4 @@ tr:hover {
 
 .hover\\:shadow-lg:hover { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); }
 
-/* Responsive Utilities */
-@media (min-width: 640px) {
-  .sm\\:flex-row { flex-direction: row; }
-  .sm\\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-  .sm\\:block { display: block; }
-}
-
-@media (min-width: 768px) {
-  .section-padding {
-    padding: 8rem 0;
-  }
-}
+/* Responsive Utilities *

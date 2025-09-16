@@ -132,224 +132,156 @@ export default function PaymentsPage() {
   };
 
   const renderReceiptsTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-24 w-full">
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-4 gap-6">
         {/* Total Paid */}
-        <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow hover:shadow-lg transition">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs md:text-sm font-medium text-gray-600">Total Paid</p>
-              <p className="text-xl md:text-2xl font-bold text-green-600">
+              <p className="text-sm font-medium text-gray-600">Total Paid</p>
+              <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(paymentStatus?.total_paid || 0)}
               </p>
             </div>
-            <CheckCircle className="w-5 h-5 text-green-600" />
+            <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
         </div>
         {/* Pending */}
-        <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow hover:shadow-lg transition">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs md:text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-xl md:text-2xl font-bold text-yellow-600">
+              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-2xl font-bold text-yellow-600">
                 {paymentStatus?.total_pending || 0}
               </p>
             </div>
-            <Clock className="w-5 h-5 text-yellow-600" />
+            <Clock className="w-8 h-8 text-yellow-600" />
           </div>
         </div>
         {/* This Month */}
-        <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 col-span-2 md:col-span-1">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow hover:shadow-lg transition">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs md:text-sm font-medium text-gray-600">This Month</p>
-              <p className="text-xl md:text-2xl font-bold text-blue-600">
+              <p className="text-sm font-medium text-gray-600">This Month</p>
+              <p className="text-2xl font-bold text-blue-600">
                 {allPayments.filter(p =>
                   p.payment_for_month === new Date().getMonth() + 1 &&
                   p.payment_for_year === new Date().getFullYear()
                 ).length}
               </p>
             </div>
-            <TrendingUp className="w-5 h-5 text-blue-600" />
+            <TrendingUp className="w-8 h-8 text-blue-600" />
+          </div>
+        </div>
+        {/* Overdue */}
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow hover:shadow-lg transition">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Overdue</p>
+              <p className="text-2xl font-bold text-red-600">
+                {allPayments.filter(p => p.status?.toString().toLowerCase() === 'overdue').length}
+              </p>
+            </div>
+            <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
         </div>
       </div>
 
       {/* Payments List */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="px-4 md:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="text-lg md:text-xl font-semibold text-gray-900 flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-blue-600" />
+      <div className="bg-white rounded-xl border border-gray-200 shadow">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <Receipt className="w-6 h-6 text-blue-600" />
             Payment History
           </h3>
           <button
             type="button"
             onClick={() => { refetchStatus(); refetchPayments(); }}
-            className="inline-flex items-center gap-1 text-xs md:text-sm px-3 py-1.5 rounded-md border border-gray-300 hover:bg-gray-50"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 text-sm font-medium"
           >
-            <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw className="w-5 h-5" />
+            Refresh
           </button>
         </div>
-        <div className="p-4 md:p-6">
+        <div className="p-6">
           {statusLoading || paymentsLoading ? (
-            <div className="text-center py-10 flex flex-col items-center gap-3 text-gray-600">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-              <p className="text-sm">Loading payment history...</p>
+            <div className="text-center py-12 flex flex-col items-center gap-4 text-gray-600">
+              <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+              <p className="text-lg">Loading payment history...</p>
             </div>
           ) : allPayments.length === 0 ? (
-            <div className="text-center py-10 flex flex-col items-center gap-3 text-gray-500">
-              <CreditCard className="w-10 h-10 text-gray-400" />
-              <p className="text-sm font-medium">No payment records found</p>
-              <p className="text-xs">Your payment history will appear here</p>
+            <div className="text-center py-12 flex flex-col items-center gap-4 text-gray-500">
+              <CreditCard className="w-16 h-16 text-gray-400" />
+              <p className="text-lg font-medium">No payment records found</p>
+              <p className="text-sm">Your payment history will appear here</p>
               <button
                 onClick={()=>setActiveTab('log-payment')}
-                className="mt-2 text-xs px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                className="mt-4 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium"
               >
                 Log First Payment
               </button>
             </div>
           ) : (
-            <>
-              {/* Mobile Cards */}
-              { window.innerWidth < 640 ? (
-              <div className="sm:hidden space-y-4">
-                {allPayments.map((payment: Payment) => {
-                  const status = payment.acknowledgement_status || payment.status || 'Unknown';
-                  return (
-                    <div
-                      key={payment.id}
-                      className="rounded-xl border border-gray-200 bg-gray-50 p-4 flex flex-col gap-3"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-base font-semibold">
-                            {formatCurrency(payment.amount)}
-                          </p>
-                          <p className="text-[11px] text-gray-500 flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {months.find(m => m.value === payment.payment_for_month)?.label}{' '}
-                            {payment.payment_for_year}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 text-[10px] rounded-full font-medium ${getStatusColor(status)}`}
-                        >
-                          {status}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px]">
-                        <div className="space-y-1">
-                          <p className="flex justify-between">
-                            <span className="text-gray-500">Due</span>
-                            <span className="font-medium">{formatDate(payment.due_date)}</span>
-                          </p>
-                          {payment.paid_at && (
-                            <p className="flex justify-between">
-                              <span className="text-gray-500">Paid</span>
-                              <span className="text-emerald-600 font-medium">{formatDate(payment.paid_at)}</span>
-                            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left font-medium text-gray-600 py-3">Amount</th>
+                    <th className="text-left font-medium text-gray-600 py-3">Month/Year</th>
+                    <th className="text-left font-medium text-gray-600 py-3">Due Date</th>
+                    <th className="text-left font-medium text-gray-600 py-3">Paid Date</th>
+                    <th className="text-left font-medium text-gray-600 py-3">Method</th>
+                    <th className="text-left font-medium text-gray-600 py-3">Status</th>
+                    <th className="text-left font-medium text-gray-600 py-3">Receipt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allPayments.map((payment: Payment) => {
+                    const status = payment.acknowledgement_status || payment.status || 'Unknown';
+                    return (
+                      <tr key={payment.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-4 font-semibold text-gray-900">
+                          {formatCurrency(payment.amount)}
+                        </td>
+                        <td className="py-4 text-gray-600">
+                          {months.find(m => m.value === payment.payment_for_month)?.label} {payment.payment_for_year}
+                        </td>
+                        <td className="py-4 text-gray-600">
+                          {formatDate(payment.due_date)}
+                        </td>
+                        <td className="py-4 text-gray-600">
+                          {payment.paid_at ? formatDate(payment.paid_at) : '—'}
+                        </td>
+                        <td className="py-4 text-gray-600">
+                          {payment.payment_method || 'N/A'}
+                        </td>
+                        <td className="py-4">
+                          <span className={`px-3 py-1 text-xs rounded-full font-medium ${getStatusColor(status)}`}>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="py-4">
+                          {payment.receipt_file ? (
+                            <a
+                              href={payment.receipt_file}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
+                              <FileText className="w-4 h-4" />
+                              View
+                            </a>
+                          ) : (
+                            <span className="text-gray-400 text-sm">—</span>
                           )}
-                        </div>
-                        <div className="space-y-1">
-                          <p className="flex justify-between">
-                            <span className="text-gray-500">Method</span>
-                            <span className="font-medium truncate max-w-[90px]">
-                              {payment.payment_method || 'N/A'}
-                            </span>
-                          </p>
-                          <p className="flex justify-between">
-                            <span className="text-gray-500">Ref</span>
-                            <span className="font-medium truncate max-w-[90px]">
-                              {payment.reference_number || '—'}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                      {payment.receipt_file && (
-                        <a
-                          href={payment.receipt_file}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          View Receipt
-                        </a>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>) : null}
-
-              {/* Desktop / Tablet List */}
-              {window.innerWidth > 640 ? (
-              <div className="sm:block space-y-4">
-                {allPayments.map((payment: Payment) => {
-                  const status = payment.acknowledgement_status || payment.status || 'Unknown';
-                  return (
-                    <div key={payment.id} className="payment-card bg-gray-50 border rounded-lg p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h4 className="text-xl font-semibold">{formatCurrency(payment.amount)}</h4>
-                          <p className="text-sm text-gray-600">
-                            {months.find(m => m.value === payment.payment_for_month)?.label}{' '}
-                            {payment.payment_for_year}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-3 py-1 text-sm rounded-full font-medium ${getStatusColor(status)}`}
-                        >
-                          {status}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Due Date:</span>
-                            <span className="text-sm font-medium">{formatDate(payment.due_date)}</span>
-                          </div>
-                          {payment.paid_at && (
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600">Paid Date:</span>
-                              <span className="text-sm font-medium">{formatDate(payment.paid_at)}</span>
-                            </div>
-                          )}
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Payment Method:</span>
-                            <span className="text-sm font-medium">
-                              {payment.payment_method || 'N/A'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Reference:</span>
-                            <span className="text-sm font-medium break-all">
-                              {payment.reference_number || 'N/A'}
-                            </span>
-                          </div>
-                          {payment.receipt_file && (
-                            <div className="mt-3">
-                              <a
-                                href={payment.receipt_file}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 text-sm"
-                              >
-                                <FileText className="w-4 h-4 inline-block" />
-                                <span>View Receipt</span>
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>) : null}
-            </>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
@@ -359,7 +291,7 @@ export default function PaymentsPage() {
   const renderLogPaymentTab = () => (
     <div className="space-y-6">
       {/* Instructions */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 md:p-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-base md:text-lg font-semibold text-blue-900 mb-2 flex items-center gap-2">
           <Wallet className="w-5 h-5" />
           Payment Instructions
@@ -380,9 +312,9 @@ export default function PaymentsPage() {
             Log New Payment
           </h3>
         </div>
-        <div className="p-4 md:p-6">
+        <div className="p-6">
           <form onSubmit={handleLogPayment} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Amount (UGX)</label>
                 <input
@@ -515,78 +447,112 @@ export default function PaymentsPage() {
   );
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-[1200px] mx-auto pb-24" style={{ marginTop: '80px' }}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div className="flex items-center gap-4 sm:gap-5">
-            {/* <div className="p-3 sm:p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl">
-              <Home className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-            </div> */}
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">
-                Payments Overview
-              </h1>
-              <p className="text-gray-600 text-xs sm:text-sm mt-1 truncate max-w-[240px] sm:max-w-none">
-                Your payment history and management
-              </p>
+    <div className="min-h-screen  relative overflow-hidden">
+      {/* Creative SVG Blobs */}
+      {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
+        </svg>
+      </div>
+      <div className="absolute top-40 right-32 w-36 h-36 opacity-15" style={{ transform: 'rotate(-30deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 20c15-5 35 5 40 25s-5 35-25 40S15 75 10 55 15 25 30 20z" fill="#10b981" />
+        </svg>
+      </div>
+      <div className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10" style={{ transform: 'rotate(60deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 30c10-10 30-10 40 0s10 30 0 40-30 10-40 0S10 40 20 30z" fill="#f59e0b" />
+        </svg>
+      </div>
+      <div className="absolute top-1/3 right-10 w-40 h-40 opacity-25" style={{ transform: 'rotate(120deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 10c15 5 25 25 20 40s-25 25-40 20S5 55 10 40 25 5 40 10z" fill="#ef4444" />
+        </svg>
+      </div>
+      <div className="absolute bottom-10 right-1/3 w-52 h-52 opacity-20" style={{ transform: 'rotate(-45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
+        </svg>
+      </div> */}
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="space-y-8 pb-24 w-full" style={{ marginTop: '80px' }}>
+          {/* Enhanced Header */}
+          <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
+            <div className="absolute -top-14 -left-14 w-72 h-72 bg-gradient-to-br from-indigo-500/10 to-blue-600/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-20 -right-16 w-96 h-96 bg-gradient-to-br from-blue-400/10 via-indigo-500/10 to-purple-600/10 rounded-full blur-3xl" />
+            <div className="relative flex flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl">
+                  <img src="/logo.png" alt="Edith Estates Logo" className="w-10 h-10 rounded-2xl" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">
+                    Payments Overview
+                  </h1>
+                  <p className="text-gray-600 text-sm mt-1">
+                    Your payment history and management
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                {activeTab !== 'log-payment' && (
+                  <button
+                    onClick={()=>setActiveTab('log-payment')}
+                    className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow hover:shadow-lg transition flex items-center gap-2 text-sm font-medium"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Log Payment
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        <div className="flex gap-2">
-          {activeTab !== 'log-payment' && (
+
+          {/* Tabs */}
+          <div className="bg-white rounded-xl border border-gray-200">
+            <div className="border-b border-gray-200">
+              <nav className="flex space-x-6 px-6">
+                <button
+                  onClick={() => setActiveTab('receipts')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'receipts'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5 inline-block mr-1" />
+                  History
+                </button>
+                <button
+                  onClick={() => setActiveTab('log-payment')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'log-payment'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Plus className="w-5 h-5 inline-block mr-1" />
+                  Log Payment
+                </button>
+              </nav>
+            </div>
+            <div className="p-6">
+              {activeTab === 'receipts' ? renderReceiptsTab() : renderLogPaymentTab()}
+            </div>
+          </div>
+
+          {/* Mobile FAB */}
+          {activeTab === 'receipts' && (
             <button
               onClick={()=>setActiveTab('log-payment')}
-              className="hidden sm:inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium shadow hover:shadow-md"
+              className="fixed bottom-5 right-5 p-4 rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center"
+              aria-label="Log Payment"
             >
-              <Plus className="w-4 h-4" />
-              Log Payment
+              <Plus className="w-5 h-5" />
             </button>
           )}
         </div>
       </div>
-
-      {/* Tabs */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="border-b border-gray-200 overflow-x-auto">
-          <nav className="flex space-x-6 px-4 md:px-6 min-w-max">
-            <button
-              onClick={() => setActiveTab('receipts')}
-              className={`py-3 md:py-4 px-1 border-b-2 font-medium text-xs md:text-sm ${
-                activeTab === 'receipts'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <CreditCard className="w-4 h-4 md:w-5 md:h-5 inline-block mr-1" />
-              History
-            </button>
-            <button
-              onClick={() => setActiveTab('log-payment')}
-              className={`py-3 md:py-4 px-1 border-b-2 font-medium text-xs md:text-sm ${
-                activeTab === 'log-payment'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Plus className="w-4 h-4 md:w-5 md:h-5 inline-block mr-1" />
-              Log Payment
-            </button>
-          </nav>
-        </div>
-        <div className="p-4 md:p-6">
-          {activeTab === 'receipts' ? renderReceiptsTab() : renderLogPaymentTab()}
-        </div>
-      </div>
-
-      {/* Mobile FAB */}
-      {activeTab === 'receipts' && (
-        <button
-          onClick={()=>setActiveTab('log-payment')}
-            className="sm:hidden fixed bottom-5 right-5 p-4 rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center"
-            aria-label="Log Payment"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
-      )}
     </div>
   );
 }

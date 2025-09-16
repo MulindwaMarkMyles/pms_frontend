@@ -17,28 +17,33 @@ const navItems: { key: TenantPage; label: string; icon: string }[] = [
 export default function TenantSidebar({ active, onChange }: TenantSidebarProps) {
   const { user, logout } = useFlexibleAuth();
   const [openMobile, setOpenMobile] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false); // width collapse on desktop (lg+) only
 
-  const desktopWidth = collapsed ? 'w-[82px]' : 'w-72';
+  // Collapse width only on lg screens; mobile always full width
+  const desktopWidth = collapsed ? 'lg:w-0 w-72' : 'w-72';
+  const asideCollapsedModifiers = collapsed ? 'lg:overflow-hidden lg:border-none lg:shadow-none' : 'border-r border-white/30 shadow-2xl';
+
+   const isMobile = window.innerWidth < 1024; // Tailwind's lg breakpoint is 1024px
 
   return (
     <>
       {/* Toggles */}
-      <div className="fixed top-4 left-4 z-50 flex gap-2">
-        <button
-          onClick={() => setOpenMobile(o => !o)}
-          className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition"
-        >
-          <span className="material-icons text-indigo-600">{openMobile ? 'close' : 'menu'}</span>
-        </button>
-        <button
-          onClick={() => setCollapsed(c=>!c)}
-          className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition"
-        >
-          <span className="material-icons text-indigo-600">
-            {collapsed ? 'chevron_right' : 'chevron_left'}
-          </span>
-        </button>
+      <div className="fixed top-4 left-4 z-60 flex gap-2"> {/* raise z-index so it stays above the sidebar on desktop */}
+        {/* check if device is mobile */}
+          {isMobile ? (
+            <>
+            <button onClick={() => setOpenMobile(o => !o)} className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition">
+              <span className="material-icons text-blue-600">{openMobile ? 'close' : 'menu'}</span>
+            </button>
+            <button onClick={() => setCollapsed(c=>!c)} className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition">
+            <span className="material-icons text-blue-600">{collapsed ? 'chevron_left' : 'chevron_right'}</span>
+          </button>
+            </>
+        ):(
+          <button onClick={() => setCollapsed(c => !c)} className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition">
+            <span className="material-icons text-blue-600">{collapsed ? 'menu' : 'close'}</span>
+          </button>
+        )}
       </div>
 
       {/* Mobile Overlay */}
@@ -51,8 +56,8 @@ export default function TenantSidebar({ active, onChange }: TenantSidebarProps) 
 
       <aside
         className={`fixed top-0 left-0 h-full ${desktopWidth} flex flex-col
-          bg-gradient-to-br from-white/80 to-white/30 backdrop-blur-xl border-r border-white/30
-          shadow-2xl transition-all duration-500 z-50
+          bg-gradient-to-br from-white/80 to-white/30 backdrop-blur-xl ${asideCollapsedModifiers}
+          transition-all duration-500 z-50
           ${openMobile ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
         {/* Brand */}
@@ -72,6 +77,15 @@ export default function TenantSidebar({ active, onChange }: TenantSidebarProps) 
               <p className="text-[11px] text-gray-600">Welcome</p>
             </div>
           )}
+
+          {/* Inline collapse button (visible on large screens) */}
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            className="ml-auto hidden lg:inline-flex items-center justify-center p-2 rounded-md hover:bg-white/20 transition"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <span className="material-icons text-indigo-600">{collapsed ? 'chevron_right' : 'chevron_left'}</span>
+          </button>
         </div>
 
         {/* Navigation */}

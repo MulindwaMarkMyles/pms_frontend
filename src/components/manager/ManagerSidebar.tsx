@@ -16,31 +16,45 @@ const navItems: { key: DashboardPage; label: string; icon: string }[] = [
 export default function ManagerSidebar({ active, onChange }: SidebarProps) {
   const { user, logout } = useFlexibleAuth();
   const [openMobile, setOpenMobile] = useState(false); // slide in/out on small screens
-  const [collapsed, setCollapsed] = useState(false); // width collapse on ALL breakpoints
+  const [collapsed, setCollapsed] = useState(false); // width collapse on desktop (lg+) only
 
-  const desktopWidth = collapsed ? 'w-[82px]' : 'w-72';
+  // Collapse width only on lg screens; mobile always full width
+  const desktopWidth = collapsed ? 'lg:w-0 w-72' : 'w-72';
+  const asideCollapsedModifiers = collapsed ? 'lg:overflow-hidden lg:border-none lg:shadow-none' : 'border-r border-white/30 shadow-2xl';
+
+  const isMobile = window.innerWidth < 1024; // Tailwind's lg breakpoint is 1024px
 
   return (
     <>
       {/* Global Toggle (always visible) */}
-      <div className="fixed top-4 left-4 z-50 flex gap-2">
-        <button onClick={() => setOpenMobile(o => !o)} className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition">
-          <span className="material-icons text-blue-600">{openMobile ? 'close' : 'menu'}</span>
-        </button>
-        <button onClick={() => setCollapsed(c=>!c)} className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition">
-          <span className="material-icons text-blue-600">{collapsed ? 'chevron_right' : 'chevron_left'}</span>
-        </button>
+      <div className="fixed top-4 left-4 z-60 flex gap-2"> {/* raise z-index so it stays above the sidebar on desktop */}
+        {/* check if device is mobile */}
+          {isMobile ? (
+            <>
+            <button onClick={() => setOpenMobile(o => !o)} className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition">
+              <span className="material-icons text-blue-600">{openMobile ? 'close' : 'menu'}</span>
+            </button>
+            <button onClick={() => setCollapsed(c=>!c)} className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition">
+            <span className="material-icons text-blue-600">{collapsed ? 'chevron_left' : 'chevron_right'}</span>
+          </button>
+            </>
+        ):(
+          <button onClick={() => setCollapsed(c => !c)} className="p-3 rounded-xl backdrop-blur-md bg-white/70 shadow-lg border border-white/20 hover:scale-105 transition">
+            <span className="material-icons text-blue-600">{collapsed ? 'menu' : 'close'}</span>
+          </button>
+        )}
       </div>
 
       {/* Dark overlay for mobile when open */}
       <div onClick={()=>setOpenMobile(false)} className={`lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity ${openMobile ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} />
 
-      <aside className={`fixed top-0 left-0 h-full ${desktopWidth} flex flex-col bg-gradient-to-br from-white/80 to-white/30 backdrop-blur-xl border-r border-white/30 shadow-2xl transition-all duration-500 z-50
+      <aside className={`fixed top-0 left-0 h-full ${desktopWidth} flex flex-col bg-gradient-to-br from-white/80 to-white/30 backdrop-blur-xl ${asideCollapsedModifiers} transition-all duration-500 z-50
         ${openMobile ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>        
         {/* Brand + Collapse (collapse button duplicated for accessibility) */}
         <div className="relative p-4 border-b border-white/30 flex items-center gap-3">
-          <div className={`p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg flex-shrink-0 ${collapsed ? 'mx-auto' : ''}`}>            
-            <span className="material-icons text-white">apartment</span>
+          <div className={`p-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg flex-shrink-0 ${collapsed ? 'mx-auto' : ''}`}>            
+            {/* <span className="material-icons text-white">apartment</span> */}
+            <img src="/logo.png" alt="Edith Estates Logo" className="w-10 h-10 rounded-lg" />
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
@@ -48,6 +62,15 @@ export default function ManagerSidebar({ active, onChange }: SidebarProps) {
               <p className="text-[11px] text-gray-600">Manager Panel</p>
             </div>
           )}
+
+          {/* Inline collapse button (visible on large screens) */}
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            className="ml-auto hidden lg:inline-flex items-center justify-center p-2 rounded-md hover:bg-white/20 transition"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <span className="material-icons text-blue-600">{collapsed ? 'chevron_right' : 'chevron_left'}</span>
+          </button>
         </div>
 
         {/* Navigation */}

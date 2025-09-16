@@ -70,19 +70,19 @@ export default function OwnerDashboard() {
   }
   function MetricCard({ label, value, desc, icon, color }:{label:string;value:any;desc:string;icon:React.ReactNode;color:string}) {
     return (
-      <div className="relative p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/60 backdrop-blur border border-white/30 flex flex-col gap-1 shadow overflow-hidden">
+      <div className="relative p-4 rounded-2xl bg-white/60 backdrop-blur border border-white/30 flex flex-col gap-1 shadow overflow-hidden">
         <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-10`} />
-        <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-medium tracking-wide text-gray-500">
+        <div className="flex items-center gap-2 text-[10px] font-medium tracking-wide text-gray-500">
           {icon}{label}
         </div>
-        <div className="text-base sm:text-lg md:text-xl font-bold text-gray-900">{value}</div>
-        <div className="text-[9px] sm:text-[10px] text-gray-500 truncate">{desc}</div>
+        <div className="text-xl font-bold text-gray-900">{value}</div>
+        <div className="text-[10px] text-gray-500 truncate">{desc}</div>
       </div>
     );
   }
   function SectionCard({ title, children, actions }:{title:string;children:React.ReactNode;actions?:React.ReactNode}) {
     return (
-      <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6">
+      <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
             <span className="material-icons text-base text-indigo-600">dashboard</span>
@@ -114,15 +114,17 @@ export default function OwnerDashboard() {
           {/* Top Cluster */}
           <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
             <div className="absolute -top-14 -right-14 w-72 h-72 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
-            <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="relative flex flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-5">
-                <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-xl"><span className="material-icons text-white text-3xl">apartment</span></div>
+                <div className="p-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-xl">
+                  <img src="/logo.png" alt="Edith Estates Logo" className="w-24 h-12 rounded-2xl" />
+                </div>
                 <div>
                   <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 bg-clip-text text-transparent">Owner Portfolio</h1>
                   <p className="text-gray-600 text-sm mt-1">High level snapshot across estates</p>
                 </div>
               </div>
-              <div className="flex flex-row gap-3">
+              <div className="flex gap-3">
                 <select value={estateFilter} onChange={e=>setEstateFilter(e.target.value)} className="px-4 py-2.5 rounded-xl bg-white/60 border border-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[180px]">
                   <option value="">All Estates</option>
                   {occupancyData?.estates?.map((es:any)=> <option key={es.estate_id} value={es.estate_id}>{es.estate_name}</option>)}
@@ -131,7 +133,7 @@ export default function OwnerDashboard() {
               </div>
             </div>
             
-            <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="mt-8 grid grid-cols-5 gap-4">
               <MetricCard label="ESTATES" icon={<Building className="w-5 h-5 text-blue-600" />} color="from-blue-500 to-blue-600" value={occupancyLoading? '…' : estatesCount} desc="Managed" />
               <MetricCard label="OCCUPANCY" icon={<Users className="w-5 h-5 text-indigo-600" />} color="from-indigo-500 to-indigo-600" value={occupancyLoading? '…' : `${Number(occupancyData?.occupancy_rate || 0).toFixed(2)}%`} desc={`${occupancyData?.occupied_apartments||0}/${occupancyData?.total_apartments||0}`} />
               <MetricCard label="MONTH REVENUE" icon={<DollarSign className="w-5 h-5 text-emerald-600" />} color="from-emerald-500 to-emerald-600" 
@@ -148,14 +150,14 @@ export default function OwnerDashboard() {
 
           {/* Secondary Layout */}
           <div className="grid grid-cols-12 gap-8 items-start">
-            <div className="col-span-12 xl:col-span-8 space-y-8">
+            <div className="col-span-8 space-y-8">
               {/* Occupancy Section */}
               <SectionCard title="Occupancy Overview" icon="insights" actions={
                 <div className="flex items-center gap-2 text-[11px] text-gray-500"><span className="material-icons text-[14px]">update</span>{now}</div>
               }>
                 {occupancyLoading ? <LoadingPlaceholder /> : (
                   <div className="space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                       <StatPill label="Total Apts" value={occupancyData?.total_apartments||0} />
                       <StatPill label="Occupied" value={occupancyData?.occupied_apartments||0} accent="text-emerald-600" />
                       <StatPill label="Vacant" value={occupancyData?.vacant_apartments||0} accent="text-rose-600" />
@@ -175,7 +177,7 @@ export default function OwnerDashboard() {
                             <div className="flex items-center gap-1"><span className="material-icons text-[14px] text-gray-400">apps</span>{es.total_apartments}</div>
                           </div>
                           {es.blocks?.length>0 && (
-                            <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <div className="mt-3 grid grid-cols-3 gap-2">
                               {es.blocks.slice(0,6).map((b:any)=>(
                                 <div key={b.block_id} className="p-2 rounded-xl bg-white/70 border border-white/40 text-[10px] flex flex-col gap-1">
                                   <div className="font-medium text-gray-700 truncate">{b.block_name}</div>
@@ -195,7 +197,7 @@ export default function OwnerDashboard() {
               {/* Estate Performance Table */}
               <SectionCard title="Estate Performance" icon="table_view" actions={<span className="text-[11px] text-gray-500">{estatePaymentStatus.length} estates</span>}>
                 {estatePaymentStatus.length===0 ? <EmptyLine label="No estate data" /> : (
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="overflow-x-auto">
                     <table className="min-w-full text-sm">
                       <thead className="text-[11px] uppercase tracking-wide text-gray-500 bg-white/50">
                         <tr>
@@ -226,7 +228,7 @@ export default function OwnerDashboard() {
 
               {/* Complaint & Payment Distribution */}
               <SectionCard title="Operational Snapshot" icon="stacked_bar_chart">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-4 gap-4 mb-6">
                   <MiniStat label="Paid" value={paymentSummary?.paid_payments || 0} icon="task_alt" color="text-emerald-600" />
                   <MiniStat label="Pending" value={paymentSummary?.pending_payments || 0} icon="schedule" color="text-amber-600" />
                   <MiniStat label="Overdue" value={paymentSummary?.overdue_payments || 0} icon="warning" color="text-rose-600" />
@@ -238,7 +240,7 @@ export default function OwnerDashboard() {
               </SectionCard>
             </div>
 
-            <div className="col-span-12 xl:col-span-4 space-y-8">
+            <div className="col-span-4 space-y-8">
               {/* Alerts */}
               <SectionCard title="Payment Alerts" icon="notification_important" actions={<span className="text-[10px] text-gray-500">Auto-refresh 5m</span>}>
                 {!paymentAlerts ? <LoadingPlaceholder /> : (
@@ -313,13 +315,13 @@ export default function OwnerDashboard() {
       );
 
   return (
-    <div className="flex min-h-screen " style={{ marginTop: '5rem' }}>
+    <div className="flex min-h-screen " style={{ paddingTop: '5rem' }}>
       <OwnerSidebar
         active={activePage}
         onChange={(p)=>setActivePage(p)}
       />
       <div className="flex-1 flex flex-col">
-        <main className="px-4 sm:px-6 lg:px-10 py-6 sm:py-10 max-w-[1400px] mx-auto w-full">
+        <main className="px-6 lg:px-10 py-10 max-w-[1400px] mx-auto w-full">
           {renderPage()}
         </main>
       </div>

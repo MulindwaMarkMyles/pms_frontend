@@ -90,7 +90,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-900 to-emerald-800 text-white">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden  text-white" style={{ backgroundImage: 'url(/login_bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
       {/* Decorative gradients */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-32 -left-24 w-[480px] h-[480px] bg-indigo-500/30 rounded-full blur-3xl animate-pulse" />
@@ -101,9 +101,10 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md px-6">
         {/* Brand */}
         <div className="mb-10 text-center">
-          {/* <div className="mx-auto h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-400 via-indigo-400 to-blue-500 flex items-center justify-center shadow-lg ring-2 ring-white/30 backdrop-blur">
-            <span className="text-2xl font-extrabold tracking-wider">EE</span>
-          </div> */}
+          <div className="mx-auto flex items-center justify-center" style={{ width: '250px', height: '100px' }}>
+            {/* <span className="text-2xl font-extrabold tracking-wider">EE</span> */}
+            <img src="/logo.png" alt="Edith Estates Logo" className="rounded-2xl" />
+          </div>
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight">
             Edith Estates
           </h1>

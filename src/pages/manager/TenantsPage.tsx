@@ -132,137 +132,165 @@ export default function TenantsPage() {
   const activeTenant = computed.find(t=>t.id===selectedTenant);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4 lg:p-6 xl:p-8" style={{ paddingTop:'100px'}}>
-      <div className="max-w-[1200px] mx-auto flex gap-6 xl:gap-8">
-        <div className="flex-1 min-w-0">
-          <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl mb-8 p-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl shadow-lg"><span className="material-icons text-white text-2xl">people</span></div>
-                <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent">Tenant Management</h1>
-                  <p className="text-gray-600 text-sm lg:text-base">Live tenant roster and lease insights</p>
+    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+      {/* Creative SVG Blobs */}
+      {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
+        </svg>
+      </div>
+      <div className="absolute top-40 right-32 w-36 h-36 opacity-15" style={{ transform: 'rotate(-30deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 20c15-5 35 5 40 25s-5 35-25 40S15 75 10 55 15 25 30 20z" fill="#10b981" />
+        </svg>
+      </div>
+      <div className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10" style={{ transform: 'rotate(60deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 30c10-10 30-10 40 0s10 30 0 40-30 10-40 0S10 40 20 30z" fill="#f59e0b" />
+        </svg>
+      </div>
+      <div className="absolute top-1/3 right-10 w-40 h-40 opacity-25" style={{ transform: 'rotate(120deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 10c15 5 25 25 20 40s-25 25-40 20S5 55 10 40 25 5 40 10z" fill="#ef4444" />
+        </svg>
+      </div>
+      <div className="absolute bottom-10 right-1/3 w-52 h-52 opacity-20" style={{ transform: 'rotate(-45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
+        </svg>
+      </div> */}
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className=" mx-auto flex gap-6 xl:gap-8">
+          <div className="flex-1 min-w-0">
+            <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl mb-8 p-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl shadow-lg"><span className="material-icons text-white text-2xl">people</span></div>
+                  <div>
+                    <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-800 bg-clip-text text-transparent">Tenant Management</h1>
+                    <p className="text-gray-600 text-sm lg:text-base">Live tenant roster and lease insights</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <button onClick={refresh} className="px-5 py-3 rounded-xl bg-white/60 backdrop-blur-md border border-white/30 shadow hover:shadow-lg transition flex items-center gap-2 text-sm font-medium text-indigo-700"><span className="material-icons text-base">refresh</span>Refresh</button>
+                  <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2" onClick={()=> setShowAddModal(true)}><span className="material-icons text-sm">person_add</span><span className="font-medium">Add Tenant</span></button>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <button onClick={refresh} className="px-5 py-3 rounded-xl bg-white/60 backdrop-blur-md border border-white/30 shadow hover:shadow-lg transition flex items-center gap-2 text-sm font-medium text-indigo-700"><span className="material-icons text-base">refresh</span>Refresh</button>
-                <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2" onClick={()=> setShowAddModal(true)}><span className="material-icons text-sm">person_add</span><span className="font-medium">Add Tenant</span></button>
-              </div>
             </div>
-          </div>
 
-            <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl mb-8 p-6">
-            <div className="flex flex-row sm:flex-row sm:items-center gap-4">
-              <div className="flex-1 relative">
-              <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-              <input value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} placeholder="Search tenants by name or email..." className="w-full pl-10 pr-4 py-3 border border-white/30 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+              <div className="backdrop-blur-md  bg-white/70 border border-white/20 rounded-2xl shadow-xl mb-8 p-6">
+              <div className="flex flex-row sm:flex-row sm:items-center gap-4">
+                <div className="flex-1 relative">
+                <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                <input value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} placeholder="Search tenants by name or email..." className="w-full pl-10 pr-4 py-3 border border-white/30 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-500" />
+                </div>
+                <div className="flex flex-row sm:flex-row gap-2">
+                <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value as any)} className="px-4 py-3 border border-white/30 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="all">All Status</option>
+                  <option value="paid">Paid</option>
+                  <option value="pending">Pending</option>
+                  <option value="overdue">Overdue</option>
+                </select>
+                <button onClick={()=>setLayout(l=> l==='grid' ? 'list' : 'grid')} className="px-4 py-3 border border-white/30 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-white/70 transition flex items-center gap-2"><span className="material-icons text-sm">{layout==='grid' ? 'view_list' : 'grid_view'}</span><span className="hidden sm:inline">Layout</span></button>
+                </div>
               </div>
-              <div className="flex flex-row sm:flex-row gap-2">
-              <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value as any)} className="px-4 py-3 border border-white/30 rounded-xl bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="pending">Pending</option>
-                <option value="overdue">Overdue</option>
-              </select>
-              <button onClick={()=>setLayout(l=> l==='grid' ? 'list' : 'grid')} className="px-4 py-3 border border-white/30 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-white/70 transition flex items-center gap-2"><span className="material-icons text-sm">{layout==='grid' ? 'view_list' : 'grid_view'}</span><span className="hidden sm:inline">Layout</span></button>
-              </div>
+              {loading && <div className="text-sm text-indigo-600 flex items-center gap-2"><span className="material-icons text-base animate-spin">progress_activity</span>Loading tenants...</div>}
+              {error && <div className="text-sm text-red-600 flex items-center gap-2"><span className="material-icons text-base">error</span>{error}</div>}
             </div>
-            {loading && <div className="text-sm text-indigo-600 flex items-center gap-2"><span className="material-icons text-base animate-spin">progress_activity</span>Loading tenants...</div>}
-            {error && <div className="text-sm text-red-600 flex items-center gap-2"><span className="material-icons text-base">error</span>{error}</div>}
-          </div>
 
-          <div className={`${layout === 'grid'
-            ? 'columns-1 sm:columns-3 xl:columns-3 gap-6 space-y-6'
-            : 'space-y-4'} relative`}>
-            {filteredTenants.map((tenant) => {
-              const selected = selectedTenant === tenant.id;
-              const rentStatus = tenant.rentStatus;
-              return (
-                <div key={tenant.id} onClick={()=>openTenant(tenant.id)} className={`group cursor-pointer break-inside-avoid rounded-3xl backdrop-blur-md bg-white/70 border border-white/20 shadow-xl transition-all duration-500 overflow-hidden ${selected ? 'ring-2 ring-indigo-400/40 scale-[1.015]' : 'hover:shadow-2xl hover:scale-[1.01]'}`}>                  
-                  <div className="relative p-6 space-y-5">
-                    <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1 shadow-sm bg-white/60 backdrop-blur ${getStatusColor(rentStatus)}`}>
-                      <span className="material-icons text-[14px]">{getStatusIcon(rentStatus)}</span>{rentStatus}
+            <div className={`${layout === 'grid'
+              ? 'columns-1 sm:columns-3 xl:columns-3 gap-6 space-y-6'
+              : 'space-y-4'} relative`}>
+              {filteredTenants.map((tenant) => {
+                const selected = selectedTenant === tenant.id;
+                const rentStatus = tenant.rentStatus;
+                return (
+                  <div key={tenant.id} onClick={()=>openTenant(tenant.id)} className={`group cursor-pointer break-inside-avoid rounded-3xl backdrop-blur-md bg-white/70 border border-white/20 shadow-xl transition-all duration-500 overflow-hidden ${selected ? 'ring-2 ring-indigo-400/40 scale-[1.015]' : 'hover:shadow-2xl hover:scale-[1.01]'}`}>                  
+                    <div className="relative p-6 space-y-5">
+                      <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1 shadow-sm bg-white/60 backdrop-blur ${getStatusColor(rentStatus)}`}>
+                        <span className="material-icons text-[14px]">{getStatusIcon(rentStatus)}</span>{rentStatus}
+                      </div>
+                      {/* Header */}
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">{initials(tenant.name)}</div>
+                          <span className="absolute -bottom-1 -right-1 p-1 rounded-xl bg-white shadow border border-white/40"><span className="material-icons text-[16px] text-indigo-500">badge</span></span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-bold text-gray-900 truncate flex items-center gap-2">{tenant.name}</h3>
+                          <p className="text-xs text-gray-500 flex items-center gap-1"><span className="material-icons text-[14px]">mail</span>{tenant.email || '—'}</p>
+                        </div>
+                      </div>
+                      {/* At-a-glance info */}
+                      <div className="grid grid-cols-2 gap-4 text-[11px]">
+                        <Info icon="domain" label="Apartment" value={tenant.apartmentLabel || tenant.apartment || '—'} />
+                        <Info icon="apartment" label="Block" value={tenant.blockName || '—'} />
+                        <Info icon="villa" label="Estate" value={tenant.estateName || '—'} />
+                        <Info icon="badge" label="Type" value={tenant.tenantTypeName || '—'} />
+                        <Info icon="event" label="Start" value={tenant.lease_start ? new Date(tenant.lease_start).toLocaleDateString() : '—'} />
+                        <Info icon="event_available" label="End" value={tenant.lease_end ? new Date(tenant.lease_end).toLocaleDateString() : '—'} />
+                        <Info icon="schedule" label="Days Left" value={tenant.daysLeft!=null ? (tenant.daysLeft < 0 ? `${Math.abs(tenant.daysLeft)} overdue` : tenant.daysLeft) : '—'} />
+                        <Info icon="call" label="Phone" value={tenant.phone_number || '—'} />
+                        <Info icon="contact_phone" label="Emergency" value={tenant.emergency_contact || '—'} />
+                      </div>
+                      {/* Actions */}
+                      <div className="flex gap-2 pt-1">
+                        <button onClick={(e)=> { e.stopPropagation(); openEdit(tenant.id); }} className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-xs font-medium"><span className="material-icons text-sm">edit</span>Edit</button>
+                        {/* <button onClick={(e)=> { e.stopPropagation(); openEdit(tenant.id); }} className="px-4 py-2 border border-indigo-200 text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors"><span className="material-icons text-sm">edit</span></button>
+                        <button className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"><span className="material-icons text-sm">more_vert</span></button> */}
+                      </div>
                     </div>
-                    {/* Header */}
+                  </div>
+                );
+              })}
+            </div>
+
+            {!loading && filteredTenants.length === 0 && (
+              <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl p-12 text-center mt-8">
+                <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center"><span className="material-icons text-gray-400 text-2xl">people_outline</span></div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No tenants found</h3>
+                <p className="text-gray-600 mb-6">Try adjusting filters or import tenant data.</p>
+                <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 mx-auto"><span className="material-icons text-sm">person_add</span><span className="font-medium">Add First Tenant</span></button>
+              </div>
+            )}
+          </div>
+
+          <div className={`hidden xl:block w-[360px] transition-all duration-500 ${activeTenant ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'} relative`}>          
+            <div className="sticky top-6 space-y-6">
+              <div className="backdrop-blur-xl bg-white/70 border border-white/30 rounded-3xl shadow-2xl p-6 min-h-[280px]">
+                {activeTenant ? (
+                  <div className="space-y-5">
                     <div className="flex items-center gap-4">
-                      <div className="relative">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">{initials(tenant.name)}</div>
-                        <span className="absolute -bottom-1 -right-1 p-1 rounded-xl bg-white shadow border border-white/40"><span className="material-icons text-[16px] text-indigo-500">badge</span></span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 truncate flex items-center gap-2">{tenant.name}</h3>
-                        <p className="text-xs text-gray-500 flex items-center gap-1"><span className="material-icons text-[14px]">mail</span>{tenant.email || '—'}</p>
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">{initials(activeTenant.name)}</div>
+                      <div className="min-w-0">
+                        <h2 className="text-xl font-bold text-gray-800 truncate">{activeTenant.name}</h2>
+                        <p className="text-xs text-indigo-600 flex items-center gap-1"><span className="material-icons text-[14px]">domain</span>{activeTenant.apartment || '—'}</p>
                       </div>
                     </div>
-                    {/* At-a-glance info */}
-                    <div className="grid grid-cols-2 gap-4 text-[11px]">
-                      <Info icon="domain" label="Apartment" value={tenant.apartmentLabel || tenant.apartment || '—'} />
-                      <Info icon="apartment" label="Block" value={tenant.blockName || '—'} />
-                      <Info icon="villa" label="Estate" value={tenant.estateName || '—'} />
-                      <Info icon="badge" label="Type" value={tenant.tenantTypeName || '—'} />
-                      <Info icon="event" label="Start" value={tenant.lease_start ? new Date(tenant.lease_start).toLocaleDateString() : '—'} />
-                      <Info icon="event_available" label="End" value={tenant.lease_end ? new Date(tenant.lease_end).toLocaleDateString() : '—'} />
-                      <Info icon="schedule" label="Days Left" value={tenant.daysLeft!=null ? (tenant.daysLeft < 0 ? `${Math.abs(tenant.daysLeft)} overdue` : tenant.daysLeft) : '—'} />
-                      <Info icon="call" label="Phone" value={tenant.phone_number || '—'} />
-                      <Info icon="contact_phone" label="Emergency" value={tenant.emergency_contact || '—'} />
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <Info icon="schedule" value={activeTenant.lease_start ? new Date(activeTenant.lease_start).toLocaleDateString():'—'} label="Start" />
+                      <Info icon="event_available" value={activeTenant.lease_end ? new Date(activeTenant.lease_end).toLocaleDateString():'—'} label="End" />
+                      <Info icon="call" value={activeTenant.phone_number || '—'} label="Phone" />
+                      <Info icon="contact_phone" value={activeTenant.emergency_contact || '—'} label="Emergency" />
                     </div>
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-1">
-                      <button onClick={(e)=> { e.stopPropagation(); openEdit(tenant.id); }} className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-xs font-medium"><span className="material-icons text-sm">edit</span>Edit</button>
-                      {/* <button onClick={(e)=> { e.stopPropagation(); openEdit(tenant.id); }} className="px-4 py-2 border border-indigo-200 text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors"><span className="material-icons text-sm">edit</span></button>
-                      <button className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"><span className="material-icons text-sm">more_vert</span></button> */}
+                    <div className="flex gap-2">
+                      <button className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-xs font-medium"><span className="material-icons text-sm">email</span>Email</button>
+                      <button className="px-4 py-2 border border-indigo-200 text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors"><span className="material-icons text-sm">call</span></button>
+                      <button className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"><span className="material-icons text-sm">more_horiz</span></button>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {!loading && filteredTenants.length === 0 && (
-            <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl p-12 text-center mt-8">
-              <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center"><span className="material-icons text-gray-400 text-2xl">people_outline</span></div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No tenants found</h3>
-              <p className="text-gray-600 mb-6">Try adjusting filters or import tenant data.</p>
-              <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 mx-auto"><span className="material-icons text-sm">person_add</span><span className="font-medium">Add First Tenant</span></button>
-            </div>
-          )}
-        </div>
-
-        <div className={`hidden xl:block w-[360px] transition-all duration-500 ${activeTenant ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6 pointer-events-none'} relative`}>          
-          <div className="sticky top-6 space-y-6">
-            <div className="backdrop-blur-xl bg-white/70 border border-white/30 rounded-3xl shadow-2xl p-6 min-h-[280px]">
-              {activeTenant ? (
-                <div className="space-y-5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">{initials(activeTenant.name)}</div>
-                    <div className="min-w-0">
-                      <h2 className="text-xl font-bold text-gray-800 truncate">{activeTenant.name}</h2>
-                      <p className="text-xs text-indigo-600 flex items-center gap-1"><span className="material-icons text-[14px]">domain</span>{activeTenant.apartment || '—'}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <Info icon="schedule" value={activeTenant.lease_start ? new Date(activeTenant.lease_start).toLocaleDateString():'—'} label="Start" />
-                    <Info icon="event_available" value={activeTenant.lease_end ? new Date(activeTenant.lease_end).toLocaleDateString():'—'} label="End" />
-                    <Info icon="call" value={activeTenant.phone_number || '—'} label="Phone" />
-                    <Info icon="contact_phone" value={activeTenant.emergency_contact || '—'} label="Emergency" />
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-xs font-medium"><span className="material-icons text-sm">email</span>Email</button>
-                    <button className="px-4 py-2 border border-indigo-200 text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors"><span className="material-icons text-sm">call</span></button>
-                    <button className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"><span className="material-icons text-sm">more_horiz</span></button>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 text-sm"><span className="material-icons text-4xl text-indigo-300 mb-4">groups</span>Select a tenant card to view details</div>
-              )}
-            </div>
-            <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-600/90 to-indigo-700/90 text-white rounded-3xl shadow-2xl p-6">
-              <h3 className="text-sm font-semibold tracking-wide mb-4 flex items-center gap-2"><span className="material-icons text-[16px]">insights</span>Performance Tips</h3>
-              <ul className="space-y-3 text-xs">
-                <li className="flex gap-2"><span className="material-icons text-emerald-300 text-[16px]">verified</span>Keep contact info updated for timely rent reminders.</li>
-                <li className="flex gap-2"><span className="material-icons text-amber-300 text-[16px]">schedule</span>Monitor approaching lease expirations early.</li>
-                <li className="flex gap-2"><span className="material-icons text-blue-200 text-[16px]">support_agent</span>Respond to tenant issues within 24h.</li>
-              </ul>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 text-sm"><span className="material-icons text-4xl text-indigo-300 mb-4">groups</span>Select a tenant card to view details</div>
+                )}
+              </div>
+              <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-600/90 to-indigo-700/90 text-white rounded-3xl shadow-2xl p-6">
+                <h3 className="text-sm font-semibold tracking-wide mb-4 flex items-center gap-2"><span className="material-icons text-[16px]">insights</span>Performance Tips</h3>
+                <ul className="space-y-3 text-xs">
+                  <li className="flex gap-2"><span className="material-icons text-emerald-300 text-[16px]">verified</span>Keep contact info updated for timely rent reminders.</li>
+                  <li className="flex gap-2"><span className="material-icons text-amber-300 text-[16px]">schedule</span>Monitor approaching lease expirations early.</li>
+                  <li className="flex gap-2"><span className="material-icons text-blue-200 text-[16px]">support_agent</span>Respond to tenant issues within 24h.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -344,9 +372,9 @@ function Info({ icon, value, label }:{icon:string; value:any; label?:string}) {
 // New small reusable components for modal forms
 function Modal({ children, onClose, title, icon }:{children:React.ReactNode;onClose:()=>void;title:string;icon:string}) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-xl backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl border border-white/30 p-8 max-h-[90vh] overflow-auto">
+      <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] xl:max-w-4xl max-w-none sm:max-w-lg overflow-y-auto backdrop-blur-xl bg-white/90 sm:bg-white/80 rounded-none sm:rounded-3xl shadow-2xl border border-white/30 p-6 sm:p-8 xl:p-16">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2"><span className="material-icons text-indigo-600">{icon}</span>{title}</h2>

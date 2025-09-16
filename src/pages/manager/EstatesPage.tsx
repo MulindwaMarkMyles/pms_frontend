@@ -32,6 +32,7 @@ export default function EstatesPage() {
   const [selectedEstate, setSelectedEstate] = useState<number | null>(null);
   const [activeBlock, setActiveBlock] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number|null>(null); // added
+  const [hasFetched, setHasFetched] = useState(false);
 
   const [showAvailableModal, setShowAvailableModal] = useState(false);
   const [availableFilters, setAvailableFilters] = useState<{ min_rooms?: string; max_rent?: string; estate_id?: string }>({});
@@ -143,6 +144,17 @@ export default function EstatesPage() {
       .catch(()=>{});
   }, []);
 
+  // NEW: Fetch metrics and structure for all estates on load (only once)
+  useEffect(() => {
+    if (estates.length > 0 && !hasFetched) {
+      estates.forEach(estate => {
+        fetchEstateMetrics(estate.id);
+        fetchEstateStructure(estate.id);
+      });
+      setHasFetched(true);
+    }
+  }, [estates, hasFetched, fetchEstateMetrics, fetchEstateStructure]);
+
   // When modal opens fetch with current filters
   useEffect(()=> {
     if (showAvailableModal) {
@@ -166,8 +178,34 @@ export default function EstatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4 lg:p-6 xl:p-8" style={{ paddingTop:'100px'}}>
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+      {/* Creative SVG Blobs */}
+      {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
+        </svg>
+      </div>
+      <div className="absolute top-40 right-32 w-36 h-36 opacity-15" style={{ transform: 'rotate(-30deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 20c15-5 35 5 40 25s-5 35-25 40S15 75 10 55 15 25 30 20z" fill="#10b981" />
+        </svg>
+      </div>
+      <div className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10" style={{ transform: 'rotate(60deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 30c10-10 30-10 40 0s10 30 0 40-30 10-40 0S10 40 20 30z" fill="#f59e0b" />
+        </svg>
+      </div>
+      <div className="absolute top-1/3 right-10 w-40 h-40 opacity-25" style={{ transform: 'rotate(120deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 10c15 5 25 25 20 40s-25 25-40 20S5 55 10 40 25 5 40 10z" fill="#ef4444" />
+        </svg>
+      </div>
+      <div className="absolute bottom-10 right-1/3 w-52 h-52 opacity-20" style={{ transform: 'rotate(-45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
+        </svg>
+      </div> */}
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl mb-8 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -215,7 +253,7 @@ export default function EstatesPage() {
 
         {/* Search */}
         <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl mb-8 p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-row gap-4 sm:flex-row sm:items-center">
             <div className="flex-1 relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <Search className="w-5 h-5" />
@@ -551,7 +589,7 @@ export default function EstatesPage() {
                                                   {block.apartmentsError}
                                                 </p>
                                               )}
-                                              <div className="grid grid-cols-2 gap-3">
+                                              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                                 {block.apartments.slice(0, 10).map((a: any) => (
                                                   <div
                                                     key={a.id}
@@ -853,14 +891,14 @@ export default function EstatesPage() {
       {/* Create Estate Modal */}
       {showAddModal && (
         <Modal onClose={() => !creating && setShowAddModal(false)} title="Create Estate" icon="add_business">
-          <form onSubmit={handleCreate} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <form onSubmit={handleCreate} className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Input label="Name *" required value={form.name} onChange={v=>setForm(f=>({...f,name:v}))} placeholder="e.g. Sunset Gardens" />
               <Input label="Size" value={form.size} onChange={v=>setForm(f=>({...f,size:v}))} placeholder="e.g. 5 acres" />
               <Input className="md:col-span-2" label="Address *" required value={form.address} onChange={v=>setForm(f=>({...f,address:v}))} placeholder="Full address" />
               <Textarea className="md:col-span-2" label="Description" value={form.description} onChange={v=>setForm(f=>({...f,description:v}))} placeholder="Brief description" />
             </div>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold text-gray-600 flex items-center gap-1">
                   <span className="material-icons text-[14px] text-blue-500">account_tree</span>
@@ -876,9 +914,9 @@ export default function EstatesPage() {
                 </button>
               </div>
               {createBlocks.length===0 && <p className="text-[11px] text-gray-500">No blocks added.</p>}
-              <div className="space-y-4 max-h-80 overflow-auto pr-1">
+              <div className="space-y-6 max-h-96 overflow-auto pr-2">
                 {createBlocks.map((b,bi)=> (
-                  <div key={b.tempId} className="p-4 rounded-xl bg-white/60 border border-white/30 space-y-3">
+                  <div key={b.tempId} className="p-6 rounded-xl bg-white/60 border border-white/30 space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-[11px] font-semibold text-gray-700">Block {bi+1}</p>
                       <button
@@ -890,7 +928,7 @@ export default function EstatesPage() {
                         Remove
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 text-[11px]">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-[11px]">
                       <input
                         placeholder="Block name"
                         value={b.name}
@@ -904,7 +942,7 @@ export default function EstatesPage() {
                         className="px-3 py-2 rounded-lg border bg-white/70"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-medium text-gray-500">Apartments</span>
                         <button
@@ -917,9 +955,9 @@ export default function EstatesPage() {
                         </button>
                       </div>
                       {b.apartments.length===0 && <p className="text-[10px] text-gray-400">No apartments</p>}
-                      <div className="space-y-2 max-h-40 overflow-auto pr-1">
+                      <div className="space-y-4 max-h-48 overflow-auto pr-2">
                         {b.apartments.map((a:any)=> (
-                          <div key={a.tempId} className="p-3 rounded-lg border bg-white/70 space-y-2">
+                          <div key={a.tempId} className="p-4 rounded-lg border bg-white/70 space-y-3">
                             <div className="flex items-center justify-between">
                               <p className="text-[10px] font-medium text-gray-600">Apartment</p>
                               <button
@@ -930,7 +968,7 @@ export default function EstatesPage() {
                                 <span className="material-icons text-[16px]">close</span>
                               </button>
                             </div>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                               <input
                                 placeholder="Number"
                                 value={a.number}
@@ -961,9 +999,9 @@ export default function EstatesPage() {
                                 onChange={e=>setCreateBlocks(list=> list.map(x=> x.tempId===b.tempId? {...x, apartments:x.apartments.map((ap:any)=> ap.tempId===a.tempId? {...ap, color:e.target.value}:ap)}:x))}
                                 className="px-2 py-1 rounded border bg-white/70 text-[10px]"
                               />
-                              <div className="col-span-3">
-                                <p className="text-[10px] font-medium text-gray-500 mb-1">Amenities</p>
-                                <div className="flex flex-wrap gap-2 max-h-20 overflow-auto">
+                              <div className="col-span-2 lg:col-span-4">
+                                <p className="text-[10px] font-medium text-gray-500 mb-2">Amenities</p>
+                                <div className="flex flex-wrap gap-3 max-h-24 overflow-auto">
                                   {amenities.map(am=> (
                                     <label key={am.id} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border bg-white/60">
                                       <input
@@ -1013,14 +1051,14 @@ export default function EstatesPage() {
       {/* Edit Estate Modal */}
       {showEditModal && (
         <Modal onClose={() => setShowEditModal(null)} title="Edit Estate" icon="edit">
-          <form onSubmit={handleEdit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <form onSubmit={handleEdit} className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Input label="Name" value={editForm.name} onChange={v=>setEditForm(f=>({...f,name:v}))} />
               <Input label="Size" value={editForm.size} onChange={v=>setEditForm(f=>({...f,size:v}))} />
               <Input className="md:col-span-2" label="Address" value={editForm.address} onChange={v=>setEditForm(f=>({...f,address:v}))} />
               <Textarea className="md:col-span-2" label="Description" value={editForm.description} onChange={v=>setEditForm(f=>({...f,description:v}))} />
             </div>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold text-gray-600 flex items-center gap-1">
                   <span className="material-icons text-[14px] text-blue-500">view_module</span>
@@ -1036,9 +1074,9 @@ export default function EstatesPage() {
                 </button>
               </div>
               {editBlocks.length===0 && <p className="text-[11px] text-gray-500">No blocks loaded (expand estate card first to load structure or add new blocks).</p>}
-              <div className="space-y-4 max-h-80 overflow-auto pr-1">
+              <div className="space-y-6 max-h-96 overflow-auto pr-2">
                 {editBlocks.map((b:any,bi:number)=> (
-                  <div key={b.id||b.tempId} className="p-4 rounded-xl bg-white/60 border border-white/30 space-y-3">
+                  <div key={b.id||b.tempId} className="p-6 rounded-xl bg-white/60 border border-white/30 space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-[11px] font-semibold text-gray-700 flex items-center gap-1">
                         {b.existing && <span className="material-icons text-[14px] text-emerald-500">verified</span>}
@@ -1055,7 +1093,7 @@ export default function EstatesPage() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-3 text-[11px]">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-[11px]">
                       <input
                         placeholder="Block name"
                         value={b.name}
@@ -1069,7 +1107,7 @@ export default function EstatesPage() {
                         className="px-3 py-2 rounded-lg border bg-white/70"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-medium text-gray-500">Apartments</span>
                         <button
@@ -1082,9 +1120,9 @@ export default function EstatesPage() {
                         </button>
                       </div>
                       {(!b.apartments || b.apartments.length===0) && <p className="text-[10px] text-gray-400">No apartments</p>}
-                      <div className="space-y-2 max-h-40 overflow-auto pr-1">
+                      <div className="space-y-4 max-h-48 overflow-auto pr-2">
                         {b.apartments?.map((a:any)=> (
-                          <div key={a.id||a.tempId} className="p-3 rounded-lg border bg-white/70 space-y-2">
+                          <div key={a.id||a.tempId} className="p-4 rounded-lg border bg-white/70 space-y-3">
                             <div className="flex items-center justify-between">
                               <p className="text-[10px] font-medium text-gray-600">Apartment</p>
                               {!a.existing && (
@@ -1097,7 +1135,7 @@ export default function EstatesPage() {
                                 </button>
                               )}
                             </div>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                               <input
                                 placeholder="Number"
                                 value={a.number}
@@ -1128,9 +1166,9 @@ export default function EstatesPage() {
                                 onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, color:e.target.value}:ap)}:x))}
                                 className="px-2 py-1 rounded border bg-white/70 text-[10px]"
                               />
-                              <div className="col-span-3">
-                                <p className="text-[10px] font-medium text-gray-500 mb-1">Amenities</p>
-                                <div className="flex flex-wrap gap-2 max-h-20 overflow-auto">
+                              <div className="col-span-2 lg:col-span-4">
+                                <p className="text-[10px] font-medium text-gray-500 mb-2">Amenities</p>
+                                <div className="flex flex-wrap gap-3 max-h-24 overflow-auto">
                                   {amenities.map(am=> (
                                     <label key={am.id} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border bg-white/60">
                                       <input
@@ -1196,12 +1234,12 @@ function MiniStatMobile({ label, value }:{label:string; value:any}) {
   );
 }
 
-/* UPDATED: Modal for mobile full-screen */
+/* UPDATED: Modal for PC optimization */
 function Modal({ children, onClose, title, icon }:{children:React.ReactNode;onClose:()=>void;title:string;icon:string}) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] max-w-none sm:max-w-lg overflow-y-auto backdrop-blur-xl bg-white/90 sm:bg-white/80 rounded-none sm:rounded-3xl shadow-2xl border border-white/30 p-6 sm:p-8">
+      <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] xl:max-w-6xl max-w-none sm:max-w-lg overflow-y-auto backdrop-blur-xl bg-white/90 sm:bg-white/80 rounded-none sm:rounded-3xl shadow-2xl border border-white/30 p-6 sm:p-8 xl:p-16">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">

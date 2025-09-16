@@ -20,19 +20,20 @@ function LoadingPlaceholder() {
 }
 function MetricCard({ label, value, desc, icon, color }:{label:string;value:any;desc:string;icon:React.ReactNode;color:string}) {
   return (
-    <div className="relative p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/60 backdrop-blur border border-white/30 flex flex-col gap-1 shadow overflow-hidden">
+    <div className="relative p-4 rounded-2xl bg-white/60 backdrop-blur border border-white/30 flex flex-col gap-1 shadow overflow-hidden">
       <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-10`} />
-      <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-medium tracking-wide text-gray-500">
+      <div className="flex items-center gap-2 text-[10px] font-medium tracking-wide text-gray-500">
         {icon}{label}
       </div>
-      <div className="text-base sm:text-lg md:text-xl font-bold text-gray-900">{value}</div>
-      <div className="text-[9px] sm:text-[10px] text-gray-500 truncate">{desc}</div>
+      <div className="text-xl font-bold text-gray-900">{value}</div>
+      <div className="text-[10px] text-gray-500 truncate">{desc}</div>
     </div>
   );
 }
+
 function SectionCard({ title, children, actions }:{title:string;children:React.ReactNode;actions?:React.ReactNode}) {
   return (
-    <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6">
+    <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
           <span className="material-icons text-base text-indigo-600">dashboard</span>
@@ -167,26 +168,26 @@ export default function TenantDashboard() {
   };
 
   const renderOverview = () => (
-    <div className="space-y-6 sm:space-y-8 max-w-[1200px] mx-auto pb-24" style={{ marginTop: '80px' }}>
+    <div className="space-y-8 pb-24 w-full">
       {/* Header & Metrics */}
-      <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 relative overflow-hidden">
+      <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
         <div className="absolute -top-14 -left-14 w-72 h-72 bg-gradient-to-br from-indigo-500/10 to-blue-600/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -right-16 w-96 h-96 bg-gradient-to-br from-blue-400/10 via-indigo-500/10 to-purple-600/10 rounded-full blur-3xl" />
-        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
-          <div className="flex items-center gap-4 sm:gap-5">
-            <div className="p-3 sm:p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl">
-              <Home className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+        <div className="relative flex flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className="p-1 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl">
+              <img src="/logo.png" alt="Edith Estates Logo" className="w-24 h-12 rounded-2xl" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">
                 Tenant Overview
               </h1>
-              <p className="text-gray-600 text-xs sm:text-sm mt-1 truncate max-w-[240px] sm:max-w-none">
+              <p className="text-gray-600 text-sm mt-1">
                 Your current rental & service status
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 sm:gap-3">
+          <div className="flex gap-3">
             <button
               onClick={refreshAll}
               disabled={refreshing}
@@ -195,23 +196,22 @@ export default function TenantDashboard() {
               <RefreshCw className={`w-5 h-5 ${refreshing?'animate-spin':''}`} />
               {refreshing ? 'Refreshing...' : 'Refresh'}
             </button>
-            {/* Log Complaint (hide text on very small) */}
             <button
               onClick={()=>setShowComplaintModal(true)}
-              className="px-4 py-2 sm:px-5 sm:py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow hover:shadow-lg transition flex items-center gap-1.5 text-xs sm:text-sm font-medium"
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow hover:shadow-lg transition flex items-center gap-2 text-sm font-medium"
             >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden xs:inline">Log Complaint</span>
+              <Plus className="w-5 h-5" />
+              Log Complaint
             </button>
-            <span className="px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white/60 border border-white/30 text-[10px] sm:text-[11px] text-gray-600 flex items-center gap-1">
+            <span className="px-4 py-2.5 rounded-xl bg-white/60 border border-white/30 text-[11px] text-gray-600 flex items-center gap-1">
               <Calendar className="w-4 h-4 text-indigo-500" />
               {nowStr}
             </span>
           </div>
         </div>
-        {/* Metrics (responsive grid, removed forced scroll) */}
-        <div className="mt-5 sm:mt-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+        {/* Metrics */}
+        <div className="mt-8">
+          <div className="grid grid-cols-5 gap-4">
             <MetricCard
               label="UPCOMING"
               value={alertsLoading ? '…' : totalUpcoming}
@@ -252,7 +252,7 @@ export default function TenantDashboard() {
       </div>
 
       {/* Snapshot Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
+      <div className="grid grid-cols-3 gap-8">
         <SectionCard title="Rent Alerts Snapshot">
           {alertsLoading ? <LoadingPlaceholder /> : (
             <div className="text-[12px] space-y-3">
@@ -327,35 +327,22 @@ export default function TenantDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-50">
+    <div className="flex min-h-screen ">
       <TenantSidebar active={sidebarActive} onChange={handleSidebarChange} />
       <div className="flex-1 flex flex-col">
-        {/* Optional top bar (compact) */}
-        <div className="px-3 sm:px-4 lg:px-8 pt-5 sm:pt-8">
+        <main className="px-10 py-10 max-w-[1400px] mx-auto w-full relative z-10" style={{ paddingTop: '100px' }}>
           {renderPage()}
-        </div>
-
-        {/* FAB + Modal retained */}
-        {!showComplaintModal && (
-          <button
-            onClick={()=>setShowComplaintModal(true)}
-            className="lg:hidden fixed bottom-5 right-5 p-4 rounded-full shadow-lg bg-gradient-to-br from-rose-500 to-pink-600 text-white focus:outline-none focus:ring-4 focus:ring-rose-300/40"
-            aria-label="Log Complaint"
-          >
-            <MessageSquarePlus className="w-5 h-5" />
-          </button>
-        )}
+        </main>
 
         {showComplaintModal && (
-          // ...existing quick complaint modal code unchanged...
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
               className="absolute inset-0 bg-black/40 backdrop-blur-sm"
               onClick={()=>setShowComplaintModal(false)}
             />
-            <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-md overflow-y-auto backdrop-blur-xl bg-white/90 sm:bg-white/80 rounded-none sm:rounded-2xl shadow-2xl border border-white/30 p-5 sm:p-6">
+            <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto backdrop-blur-xl bg-white/90 rounded-2xl shadow-2xl border border-white/30 p-6">
               <div className="flex items-start justify-between mb-4">
-                <h2 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-rose-600" />
                   Log Complaint
                 </h2>
@@ -376,7 +363,6 @@ export default function TenantDashboard() {
                     className="w-full px-3 py-2 rounded-lg bg-white/70 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
                   >
                     <option value="">Select</option>
-                    {/* categories available in complaints page; kept minimal here */}
                     <option value="1">General</option>
                     <option value="2">Maintenance</option>
                     <option value="3">Other</option>
@@ -416,13 +402,13 @@ export default function TenantDashboard() {
                   <button
                     type="button"
                     onClick={()=>setShowComplaintModal(false)}
-                    className="px-4 py-2 rounded-lg bg-white/70 border border-gray-300 text-xs sm:text-sm hover:bg-white/90"
+                    className="px-4 py-2 rounded-lg bg-white/70 border border-gray-300 text-sm hover:bg-white/90"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white text-xs sm:text-sm font-medium shadow hover:shadow-md"
+                    className="px-5 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-medium shadow hover:shadow-md"
                   >
                     Submit
                   </button>
@@ -438,3 +424,4 @@ export default function TenantDashboard() {
     </div>
   );
 }
+                  

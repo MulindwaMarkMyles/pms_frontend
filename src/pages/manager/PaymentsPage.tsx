@@ -156,10 +156,36 @@ export default function PaymentsPageManager() {
   const getTenantObj = (p:any) => tenants.find(t=>t.id===p.tenant);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4 lg:p-6 xl:p-8" style={{ paddingTop:'100px'}}>
-      <div className="max-w-[1200px] mx-auto space-y-8">
+    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+      {/* Creative SVG Blobs */}
+      {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
+        </svg>
+      </div>
+      <div className="absolute top-40 right-32 w-36 h-36 opacity-15" style={{ transform: 'rotate(-30deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 20c15-5 35 5 40 25s-5 35-25 40S15 75 10 55 15 25 30 20z" fill="#10b981" />
+        </svg>
+      </div>
+      <div className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10" style={{ transform: 'rotate(60deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 30c10-10 30-10 40 0s10 30 0 40-30 10-40 0S10 40 20 30z" fill="#f59e0b" />
+        </svg>
+      </div>
+      <div className="absolute top-1/3 right-10 w-40 h-40 opacity-25" style={{ transform: 'rotate(120deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 10c15 5 25 25 20 40s-25 25-40 20S5 55 10 40 25 5 40 10z" fill="#ef4444" />
+        </svg>
+      </div>
+      <div className="absolute bottom-10 right-1/3 w-52 h-52 opacity-20" style={{ transform: 'rotate(-45deg)' }}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
+        </svg>
+      </div> */}
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header - UPDATED for wrap */}
-        <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
+        <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden mb-10">
           <div className="absolute -top-10 -right-10 w-56 h-56 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
           <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -169,7 +195,7 @@ export default function PaymentsPageManager() {
                 <p className="text-gray-600 text-sm mt-1">Track rent invoices, statuses and revenue</p>
               </div>
             </div>
-            <div className="flex gap-3 flex-wrap w-full md:w-auto">
+            <div className="flex gap-3 flex-wrap w-full md:w-auto items-center justify-center">
               <button onClick={handleRefresh} disabled={refreshing} className="px-5 py-3 rounded-xl bg-white/60 text-gray-700 border border-white/40 shadow hover:bg-white/80 text-sm font-medium flex items-center gap-2 disabled:opacity-60">
                 <span className={`material-icons text-sm ${refreshing?'animate-spin':''}`}>{refreshing?'progress_activity':'refresh'}</span>
                 Refresh
@@ -180,7 +206,7 @@ export default function PaymentsPageManager() {
         </div>
 
         {/* Metrics (minor: add sm:grid-cols-2 for narrow) */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-5 mb-10">
           <MetricCard label="TOTAL" icon="paid" value={allPayments.length} desc="All records" color="from-blue-500 to-blue-600" />
           <MetricCard label="PENDING" icon="schedule" value={pendingPayments.length} desc="Awaiting" color="from-amber-500 to-amber-600" />
           <MetricCard label="OVERDUE" icon="error" value={overduePayments.length} desc="Needs action" color="from-red-500 to-red-600" />
@@ -188,7 +214,7 @@ export default function PaymentsPageManager() {
         </div>
 
         {/* Filters - UPDATED stacking */}
-        <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl p-6 space-y-5">
+        <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl p-6 space-y-5 mb-10">
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 items-end">
             <SelectField label="Tenant" value={filterTenant} onChange={v=>setFilterTenant(v as number | '')} options={[{value:'', label:'All Tenants'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username || 'Tenant'}))]} />
             <SelectField label="Status" value={filterStatus} onChange={v=>setFilterStatus(v as number | '')} options={[{value:'', label:'All Status'}, ...paymentStatuses.map(s=>({ value: s.id, label: s.name }))]} />
@@ -415,7 +441,7 @@ function Modal({ children, onClose, title, icon }:{children:React.ReactNode; onC
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto max-w-none sm:max-w-3xl backdrop-blur-xl bg-white/90 sm:bg-white/80 rounded-none sm:rounded-3xl shadow-2xl border border-white/30 p-6 sm:p-8">
+      <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] xl:max-w-4xl max-w-none sm:max-w-3xl overflow-y-auto backdrop-blur-xl bg-white/90 sm:bg-white/80 rounded-none sm:rounded-3xl shadow-2xl border border-white/30 p-6 sm:p-8 xl:p-16">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
