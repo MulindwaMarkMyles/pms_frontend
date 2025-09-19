@@ -116,8 +116,8 @@ export default function OwnerDashboard() {
             <div className="absolute -top-14 -right-14 w-72 h-72 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
             <div className="relative flex flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-5">
-                <div className="p-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-xl">
-                  <img src="/logo.png" alt="Edith Estates Logo" className="w-24 h-12 rounded-2xl" />
+                <div className="p-1 bg-gradient-to-r from-blue-500 to-indigo-600  shadow-xl" style={{ borderRadius: '7px' }}>
+                  <img src="/logo.png" alt="Edith Estates Logo" className="w-24 h-12 "  style={{ borderRadius: '7px' }} />
                 </div>
                 <div>
                   <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 bg-clip-text text-transparent">Owner Portfolio</h1>

@@ -8,6 +8,8 @@ import ManagerSidebar from '../../components/manager/ManagerSidebar';
 import type { DashboardPage } from '../../components/manager/ManagerSidebar';
 import { useManagerDashboardData } from '../../hooks/useManagerDashboardData';
 import Beams from '../../components/background';
+import { AlertTriangle, User, DollarSign, Wrench } from 'lucide-react'; // Add Lucide icon imports for replacements
+import SecurityDepositsPageManager from './SecurityDepositsPage';
 
 export default function ManagerDashboard() {
 	const { isAuthenticated, isLoading } = useManagerGuard();
@@ -29,6 +31,7 @@ export default function ManagerDashboard() {
 	if (activePage === 'estates') return <div className="flex"><ManagerSidebar active={activePage} onChange={setActivePage} /><div className="flex-1"><EstatesPage /></div></div>;
 	if (activePage === 'tenants') return <div className="flex"><ManagerSidebar active={activePage} onChange={setActivePage} /><div className="flex-1"><TenantsPage /></div></div>;
 	if (activePage === 'payments') return <div className="flex"><ManagerSidebar active={activePage} onChange={setActivePage} /><div className="flex-1"><PaymentsPage /></div></div>;
+	if (activePage === 'security-deposits') return <div className="flex"><ManagerSidebar active={activePage} onChange={setActivePage} /><div className="flex-1"><SecurityDepositsPageManager /></div></div>;
 	if (activePage === 'complaints') return <div className="flex"><ManagerSidebar active={activePage} onChange={setActivePage} /><div className="flex-1"><ComplaintsPage /></div></div>;
 
 	return (
@@ -95,9 +98,9 @@ function TopCluster({dashboard}:{dashboard:any}) {
 					<div className="absolute -top-10 -right-10 w-52 h-52 bg-gradient-to-br from-blue-500/10 to-blue-700/10 rounded-full blur-3xl" />
 					<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
 						<div className="flex items-center gap-5">
-							<div className="p-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-xl">
+							<div className="p-1 bg-gradient-to-r from-blue-500 to-blue-600  shadow-xl" style={{ borderRadius: '7px' }}>
 								{/* <span className="material-icons text-white text-3xl">apartment</span> */}
-								<img src="/logo.png" alt="Edith Estates Logo" className="w-24 h-12 rounded-2xl" />
+								<img src="/logo.png" alt="Edith Estates Logo" className="w-24 h-12 " style={{ borderRadius: '7px' }} />
 							</div>
 							<div>
 								<h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 bg-clip-text text-transparent">Edith Estates</h1>
@@ -177,7 +180,11 @@ function QuickActivity() {
 			<div className="space-y-4 max-h-72 overflow-y-auto pr-2 custom-scroll">
 				{recentActivity.slice(0,6).map((a,i) => (
 					<div key={i} className="flex items-start gap-3 group">
-						<img src={`/activity-${a.type}.jpg`} alt="Activity Image" className="w-10 h-10 rounded-xl object-cover" />
+						{/* Replace img with conditional Lucide icons based on activity type */}
+						{a.type === 'tenant' && <User className="w-10 h-10 text-blue-500 rounded-xl" />}
+						{a.type === 'complaint' && <AlertTriangle className="w-10 h-10 text-amber-500 rounded-xl" />}
+						{a.type === 'payment' && <DollarSign className="w-10 h-10 text-emerald-500 rounded-xl" />}
+						{a.type === 'maintenance' && <Wrench className="w-10 h-10 text-indigo-500 rounded-xl" />}
 						<div className="flex-1"><p className="text-sm text-gray-800 leading-snug">{a.message}</p><p className="text-[11px] text-gray-500 flex items-center gap-1 mt-1"><span className="material-icons text-[10px]">schedule</span>{a.time}</p></div>
 						<button className="opacity-0 group-hover:opacity-100 transition p-1 rounded-lg hover:bg-white/60"><span className="material-icons text-gray-400 text-sm">more_horiz</span></button>
 					</div>
@@ -224,7 +231,8 @@ function OpenComplaints() {
 			<div className="space-y-4 max-h-72 overflow-y-auto pr-2">
 				{recentActivity.filter(a=>a.type==='complaint').map((c,i)=>(
 					<div key={i} className="p-4 rounded-2xl bg-white/60 backdrop-blur border border-white/30 hover:shadow flex items-start gap-3">
-						<img src="/property-leak.jpg" alt="Complaint Image" className="w-12 h-12 rounded-xl object-cover" />
+						{/* Replace img with Lucide AlertTriangle icon for complaints */}
+						<AlertTriangle className="w-12 h-12 text-amber-500 rounded-xl" /> {/* Icon sized to match original img; adjust color as needed */}
 						<div className="flex-1">
 							<p className="text-sm font-medium text-gray-800">{c.message}</p>
 							<p className="text-[11px] text-gray-500 mt-1 flex items-center gap-1"><span className="material-icons text-[10px]">schedule</span>{c.time}</p>

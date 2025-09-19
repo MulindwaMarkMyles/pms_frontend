@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFlexibleAuth } from '../../hooks/useFlexibleAuth';
 
-export type DashboardPage = 'dashboard' | 'estates' | 'tenants' | 'payments' | 'complaints';
+export type DashboardPage = 'dashboard' | 'estates' | 'tenants' | 'payments' | 'complaints' | 'security-deposits'; // NEW: Added 'security-deposits'
 
 interface SidebarProps { active: DashboardPage; onChange: (val: DashboardPage) => void; }
 
@@ -10,6 +10,7 @@ const navItems: { key: DashboardPage; label: string; icon: string }[] = [
   { key: 'estates', label: 'Estates', icon: 'business' },
   { key: 'tenants', label: 'Tenants', icon: 'people' },
   { key: 'payments', label: 'Payments', icon: 'payments' },
+  { key: 'security-deposits', label: 'Security Deposits', icon: 'security' }, // NEW: Added Security Deposits
   { key: 'complaints', label: 'Complaints', icon: 'report_problem' }
 ];
 

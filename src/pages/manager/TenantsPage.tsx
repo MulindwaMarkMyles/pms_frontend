@@ -191,7 +191,7 @@ export default function TenantsPage() {
                   <option value="pending">Pending</option>
                   <option value="overdue">Overdue</option>
                 </select>
-                <button onClick={()=>setLayout(l=> l==='grid' ? 'list' : 'grid')} className="px-4 py-3 border border-white/30 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-white/70 transition flex items-center gap-2"><span className="material-icons text-sm">{layout==='grid' ? 'view_list' : 'grid_view'}</span><span className="hidden sm:inline">Layout</span></button>
+                {/* <button onClick={()=>setLayout(l=> l==='grid' ? 'list' : 'grid')} className="px-4 py-3 border border-white/30 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-white/70 transition flex items-center gap-2"><span className="material-icons text-sm">{layout==='grid' ? 'view_list' : 'grid_view'}</span><span className="hidden sm:inline">Layout</span></button> */}
                 </div>
               </div>
               {loading && <div className="text-sm text-indigo-600 flex items-center gap-2"><span className="material-icons text-base animate-spin">progress_activity</span>Loading tenants...</div>}

@@ -88,6 +88,15 @@ export const tenantApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Payment'],
     }),
+
+    updateComplaint: builder.mutation<any, { id: number | string; data: FormData | Record<string, any> }>({
+      query: ({ id, data }) => ({
+        url: `/api/complaints/complaints/${id}/`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Complaint'],
+    }),
   }),
 });
 
@@ -104,4 +113,5 @@ export const {
   useGetComplaintCategoriesQuery,
   useGetMyComplaintsQuery,
   useLogComplaintMutation,
+  useUpdateComplaintMutation,
 } = tenantApi;

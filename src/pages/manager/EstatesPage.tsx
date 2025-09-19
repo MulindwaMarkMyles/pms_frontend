@@ -90,7 +90,7 @@ export default function EstatesPage() {
             description:a.description||'',
             // Store both ID and name mapping for cleaner UI while preserving IDs for API
             amenityIds:(a.amenities||[]).map((am:any)=>am.id),
-            amenities:(a.amenities||[]).map((am:any)=>am.id) // keep original for backend
+            amenities: Array.isArray(a.amenities) && a.amenities.length > 0 && typeof a.amenities[0] === 'object' ? a.amenities.map((am:any)=>am.id) : (a.amenities || [])
           }))
         })));
       } else {
@@ -165,6 +165,33 @@ export default function EstatesPage() {
       });
     }
   }, [showAvailableModal, availableFilters, fetchAvailableApartments]);
+
+  // NEW: Update editBlocks when structure is loaded for the edit modal
+  useEffect(() => {
+    if (showEditModal && structureCache[showEditModal]) {
+      const structure = structureCache[showEditModal];
+      if (structure?.blocks) {
+        setEditBlocks(structure.blocks.map((b:any)=> ({
+          existing:true,
+          id:b.id,
+          name:b.name||'',
+          description:b.description||'',
+          apartments:(b.apartments||[]).map((a:any)=>({
+            existing:true,
+            id:a.id,
+            number:a.number||'',
+            size:a.size||'',
+            rent_amount:a.rent_amount||'',
+            number_of_rooms:a.number_of_rooms||'',
+            color:a.color||'',
+            description:a.description||'',
+            amenityIds:(a.amenities||[]).map((am:any)=>am.id),
+            amenities: Array.isArray(a.amenities) && a.amenities.length > 0 && typeof a.amenities[0] === 'object' ? a.amenities.map((am:any)=>am.id) : (a.amenities || [])
+          }))
+        })));
+      }
+    }
+  }, [showEditModal, structureCache]);
 
   const fetchAmenityNames = (amenityIds: any[]): string[] => {
     if (!Array.isArray(amenityIds) || !amenities.length) return [];
@@ -432,7 +459,7 @@ export default function EstatesPage() {
               <table className="min-w-full text-sm">
                 <thead className="bg-white/60 text-[11px] uppercase tracking-wide text-gray-500">
                   <tr>
-                    <Th />
+                    <Th></Th>
                     <Th>Name</Th>
                     <Th>Address</Th>
                     <Th>Size</Th>

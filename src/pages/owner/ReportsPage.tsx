@@ -175,30 +175,128 @@ export default function ReportsPage() {
           <h3 className="text-lg md:text-xl font-semibold text-gray-900">Occupancy Trends</h3>
         </div>
         <div className="p-4 md:p-6">
-          {occupancyReport?.occupancy_trends?.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">No occupancy data available</div>
+          {(!occupancyReport?.occupancy_trends || occupancyReport.occupancy_trends.length === 0) ? (
+        <div className="text-center py-8 text-gray-500">No occupancy data available</div>
           ) : (
-            <div className="space-y-4">
-              {occupancyReport?.occupancy_trends?.slice(0, 10).map((trend: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">{new Date(trend.date).toLocaleDateString()}</p>
-                    <p className="text-sm text-gray-600">
-                      {trend.occupied} of {trend.total_apartments} occupied
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-blue-600">{trend.occupancy_rate}%</p>
-                    <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${trend.occupancy_rate}%` }}
-                      ></div>
-                    </div>
-                  </div>
+        (() => {
+          const trends = occupancyReport.occupancy_trends as any[];
+          const points = trends.slice(-24); // use last up to 24 points for sparkline
+          const rates = points.map(p => Number(p.occupancy_rate ?? 0));
+          const max = Math.max(...rates, 1);
+          const min = Math.min(...rates, 0);
+          const avg = (rates.reduce((s, v) => s + v, 0) / rates.length) || 0;
+          const first = rates[0] ?? 0;
+          const last = rates[rates.length - 1] ?? 0;
+          const change = Math.round(last - first);
+          const sparkWidth = 280;
+          const sparkHeight = 60;
+          const toSvgPoints = (vals: number[]) => {
+            if (vals.length === 0) return '';
+            return vals.map((v, i) => {
+          const x = (i / (vals.length - 1 || 1)) * sparkWidth;
+          // normalize to [0,1], invert y for SVG coords
+          const norm = max === min ? 0.5 : (v - min) / (max - min);
+          const y = (1 - norm) * (sparkHeight - 4) + 2;
+          return `${x.toFixed(2)},${y.toFixed(2)}`;
+            }).join(' ');
+          };
+
+          const svgPoints = toSvgPoints(rates);
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left: Overview + sparkline */}
+          <div className="md:col-span-2 bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+            <p className="text-sm text-gray-600">Period average</p>
+            <p className="text-2xl font-bold text-blue-600">{Math.round(avg)}%</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Peak: <span className="font-medium text-green-600">{Math.round(max)}%</span>{' '}
+              • Low: <span className="font-medium text-red-600">{Math.round(min)}%</span>
+            </p>
+              </div>
+              <div className="text-right">
+            <p className={`text-sm font-semibold ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {change >= 0 ? '▲' : '▼'} {Math.abs(change)} pts
+            </p>
+            <p className="text-xs text-gray-500">change over period</p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center gap-4">
+              <div className="flex-1">
+            <svg width="100%" viewBox={`0 0 ${sparkWidth} ${sparkHeight}`} className="w-full h-16">
+              <defs>
+                <linearGradient id="gradFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.16" />
+              <stop offset="100%" stopColor="#60a5fa" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {svgPoints && (
+                <>
+              <polyline
+                points={svgPoints}
+                fill="none"
+                stroke="#2563eb"
+                strokeWidth={2}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+              {/* area under line */}
+              <path
+                d={
+                  'M ' +
+                  svgPoints +
+                  ` L ${sparkWidth},${sparkHeight} L 0,${sparkHeight} Z`
+                }
+                fill="url(#gradFill)"
+                stroke="none"
+                opacity={0.6}
+              />
+                </>
+              )}
+            </svg>
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>{new Date(points[0].date).toLocaleDateString()}</span>
+              <span>{new Date(points[points.length - 1].date).toLocaleDateString()}</span>
+            </div>
+              </div>
+
+              <div className="w-40 hidden md:block">
+            <div className="text-sm text-gray-600">Latest</div>
+            <div className="text-xl font-bold text-blue-600">{last}%</div>
+            <div className="text-xs text-gray-500">{points[points.length - 1].occupied} of {points[points.length - 1].total_apartments} occupied</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Recent breakdown list (uses space efficiently) */}
+          <div className="bg-white p-4 rounded-lg border border-gray-100 overflow-y-auto max-h-64">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Recent snapshots</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {trends.slice(-8).reverse().map((trend: any, idx: number) => (
+            <div key={idx} className="p-3 bg-gray-50 rounded-md flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">{new Date(trend.date).toLocaleDateString()}</p>
+                <p className="text-xs text-gray-500">{trend.occupied}/{trend.total_apartments}</p>
+              </div>
+              <div className="text-right">
+                <div className="font-semibold text-blue-600">{trend.occupancy_rate}%</div>
+                <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
+              <div
+                className="bg-blue-600 h-2 rounded-full"
+                style={{ width: `${trend.occupancy_rate}%` }}
+              />
                 </div>
+              </div>
+            </div>
               ))}
             </div>
+          </div>
+            </div>
+          );
+        })()
           )}
         </div>
       </div>

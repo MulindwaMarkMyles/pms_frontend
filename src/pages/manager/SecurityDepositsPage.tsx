@@ -1,16 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  useGetPaymentsQuery,
+  useGetPaymentsQuery, // CHANGED: Use payment APIs
   useGetPendingPaymentsQuery,
   useGetOverduePaymentsQuery,
   useGetPaymentStatusesQuery,
-  useCreatePaymentMutation,
+  useCreatePaymentMutation, // CHANGED: Use payment APIs
   useUpdatePaymentStatusMutation,
   useDeletePaymentMutation
-} from '../../services/paymentApi';
+} from '../../services/paymentApi'; // CHANGED: Use payment API
 import { useGetTenantsQuery } from '../../services';
 
-interface PaymentForm {
+interface SecurityDepositForm {
   tenant: number;
   amount: number;
   status: number;
@@ -19,24 +19,24 @@ interface PaymentForm {
   notes?: string;
   payment_method?: string;
   reference_number?: string;
-  months_paid?: number[];
-  payment_type: string; // NEW: Added payment_type
+  refund_status?: string;
+  payment_type: string; // ADDED: To set as 'Security Deposit'
 }
 
-interface UpdatePaymentForm {
+interface UpdateSecurityDepositForm {
   tenant: number;
   amount: number;
   payment_for_year: number;
   due_date: string;
   status_id: number;
-  months_paid: number[];
   payment_method: string;
   reference_number: string;
   notes: string;
-  payment_type: string; // NEW: Added payment_type
+  refund_status: string;
+  payment_type: string; // ADDED: To set as 'Security Deposit'
 }
 
-export default function PaymentsPageManager() {
+export default function SecurityDepositsPageManager() {
   // Tabs & filters
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'overdue'>('all');
   const [filterTenant, setFilterTenant] = useState<number | ''>('');
@@ -45,29 +45,30 @@ export default function PaymentsPageManager() {
   const [filterStatus, setFilterStatus] = useState<number | ''>('');
 
   // UI state
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showDepositForm, setShowDepositForm] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+  const [selectedDeposit, setSelectedDeposit] = useState<any | null>(null);
 
   // API queries (include filters) + refetch handles
-  const { data: allPayments = [], isLoading: paymentsLoading, refetch: refetchPayments } = useGetPaymentsQuery({
+  const { data: allDeposits = [], isLoading: depositsLoading, refetch: refetchDeposits } = useGetPaymentsQuery({
     tenant_id: filterTenant || undefined,
     month: filterMonth || undefined,
     year: filterYear,
-    status_id: filterStatus || undefined
+    status_id: filterStatus || undefined,
+    payment_type: 'Security Deposit'
   });
-  const { data: pendingPayments = [], refetch: refetchPending } = useGetPendingPaymentsQuery();
-  const { data: overduePayments = [], refetch: refetchOverdue } = useGetOverduePaymentsQuery();
-  const { data: paymentStatuses = [], refetch: refetchStatuses } = useGetPaymentStatusesQuery();
+  const { data: pendingDeposits = [], refetch: refetchPending } = useGetPendingPaymentsQuery(); // REMOVED: payment_type param
+  const { data: overdueDeposits = [], refetch: refetchOverdue } = useGetOverduePaymentsQuery(); // REMOVED: payment_type param
+  const { data: depositStatuses = [], refetch: refetchStatuses } = useGetPaymentStatusesQuery();
   const { data: tenants = [], refetch: refetchTenants } = useGetTenantsQuery({});
 
   // Mutations
-  const [createPayment, { isLoading: creating }] = useCreatePaymentMutation();
-  const [updatePaymentStatus, { isLoading: updating }] = useUpdatePaymentStatusMutation();
-  const [deletePayment, { isLoading: deleting }] = useDeletePaymentMutation();
+  const [createDeposit, { isLoading: creating }] = useCreatePaymentMutation(); // CHANGED: Use payment API
+  const [updateDepositStatus, { isLoading: updating }] = useUpdatePaymentStatusMutation(); // CHANGED: Use payment API
+  const [deleteDeposit, { isLoading: deleting }] = useDeletePaymentMutation(); // CHANGED: Use payment API
 
   // Form states
-  const [paymentForm, setPaymentForm] = useState<PaymentForm>({
+  const [depositForm, setDepositForm] = useState<SecurityDepositForm>({
     tenant: 0,
     amount: 0,
     status: 1,
@@ -76,20 +77,20 @@ export default function PaymentsPageManager() {
     notes: '',
     payment_method: '',
     reference_number: '',
-    months_paid: [],
-    payment_type: '', // NEW: Added payment_type
+    refund_status: '',
+    payment_type: 'Security Deposit', // NEW: Set default to Security Deposit
   });
-  const [updateForm, setUpdateForm] = useState<UpdatePaymentForm>({
+  const [updateForm, setUpdateForm] = useState<UpdateSecurityDepositForm>({
     tenant: 0,
     amount: 0,
     payment_for_year: new Date().getFullYear(),
     due_date: '',
     status_id: 0,
-    months_paid: [],
     payment_method: '',
     reference_number: '',
     notes: '',
-    payment_type: '', // NEW: Added payment_type
+    refund_status: '',
+    payment_type: 'Security Deposit', // NEW: Set default to Security Deposit
   });
 
   // Constants
@@ -100,7 +101,7 @@ export default function PaymentsPageManager() {
     { value: 10, name: 'October' }, { value: 11, name: 'November' }, { value: 12, name: 'December' }
   ];
   const paymentMethods = ['Bank Transfer', 'Cash', 'Mobile Money', 'Cheque', 'Online Payment'];
-  const paymentTypes = ['Rent', 'Security Deposit', 'Maintenance', 'Utilities', 'Other']; // NEW: Added payment types
+  const refundStatuses = ['Pending', 'Refunded', 'Withheld'];
 
   // Helpers
   const formatDate = (d: string) => new Date(d).toLocaleDateString();
@@ -115,35 +116,41 @@ export default function PaymentsPageManager() {
     return 'bg-gray-100 text-gray-700 border border-gray-200';
   };
 
-  const enhance = (p: any) => p; // Placeholder (API shape already flat)
+  const enhance = (p: any) => p; // Placeholder
 
-  const displayedPayments = useMemo(() => {
-    const base = activeTab === 'pending' ? pendingPayments : activeTab === 'overdue' ? overduePayments : allPayments;
+  const displayedDeposits = useMemo(() => {
+    const base = activeTab === 'pending' ? pendingDeposits.filter(d => d.payment_type === 'Security Deposit') : // NEW: Filter for Security Deposit
+                 activeTab === 'overdue' ? overdueDeposits.filter(d => d.payment_type === 'Security Deposit') : // NEW: Filter for Security Deposit
+                 allDeposits;
     return base.map(enhance);
-  }, [activeTab, pendingPayments, overduePayments, allPayments]);
+  }, [activeTab, pendingDeposits, overdueDeposits, allDeposits]);
 
   // Derived metrics
-  const thisMonthRevenue = allPayments
-    .filter(p => p.payment_for_month === (new Date().getMonth() + 1) && p.payment_for_year === new Date().getFullYear() && paymentStatuses.find(s=>s.id===p.status)?.name?.toLowerCase()==='paid')
-    .reduce((sum, p) => sum + Number(p.amount), 0);
+  const totalDeposits = allDeposits.length; // Already filtered in API query
+  const pendingDepositsCount = pendingDeposits.filter(d => d.payment_type === 'Security Deposit').length;
+  const overdueDepositsCount = overdueDeposits.filter(d => d.payment_type === 'Security Deposit').length;
+  const refundedDeposits = allDeposits.filter(d => d.refund_status?.toLowerCase() === 'refunded').length;
+
+  // Helper function to get status name from ID
+  const getStatusName = (statusId: number) => {
+    const status = depositStatuses.find(s => s.id === statusId);
+    return status?.name || 'Unknown';
+  };
 
   // Handlers
-  const handleCreatePayment = async (e: React.FormEvent) => {
+  const handleCreateDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     try { 
-      await createPayment({ ...paymentForm, payment_type: paymentForm.payment_type }); // NEW: Include payment_type
-      setShowPaymentForm(false); 
+      await createDeposit(depositForm).unwrap(); // CHANGED: Use payment API
+      setShowDepositForm(false); 
     } catch (err) { console.error(err); }
   };
-  const handleUpdatePayment = async (e: React.FormEvent) => {
-    e.preventDefault(); if (!selectedPayment) return; try { await updatePaymentStatus({ id: selectedPayment.id, update: { ...updateForm, payment_type: updateForm.payment_type } }).unwrap(); setShowUpdateForm(false); setSelectedPayment(null); } catch (err) { console.error(err); } }; // NEW: Include payment_type
-  const handleDelete = async (p:any) => {
-    if (!window.confirm('Delete this payment?')) return;
-    try { await deletePayment(p.id).unwrap(); } catch(e){ console.error(e); }
+  const handleUpdateDeposit = async (e: React.FormEvent) => {
+    e.preventDefault(); if (!selectedDeposit) return; try { await updateDepositStatus({ id: selectedDeposit.id, update: updateForm }).unwrap(); setShowUpdateForm(false); setSelectedDeposit(null); } catch (err) { console.error(err); } }; // CHANGED: Use payment API
+  const handleDelete = async (d:any) => {
+    if (!window.confirm('Delete this security deposit?')) return;
+    try { await deleteDeposit(d.id).unwrap(); } catch(e){ console.error(e); } // CHANGED: Use payment API
   };
-  const toggleMonth = (m:number) => setUpdateForm(f=> ({ ...f, months_paid: f.months_paid.includes(m)? f.months_paid.filter(x=>x!==m) : [...f.months_paid, m].sort((a,b)=>a-b) }));
-  const toggleCreateMonth = (m:number) =>
-    setPaymentForm(f=> ({ ...f, months_paid: f.months_paid?.includes(m) ? f.months_paid.filter(x=>x!==m) : [...(f.months_paid||[]), m].sort((a,b)=>a-b) }));
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -151,7 +158,7 @@ export default function PaymentsPageManager() {
     setRefreshing(true);
     try {
       await Promise.all([
-        refetchPayments(),
+        refetchDeposits(),
         refetchPending(),
         refetchOverdue(),
         refetchStatuses(),
@@ -163,8 +170,8 @@ export default function PaymentsPageManager() {
   };
 
   // NEW: derive tenant + status helpers once
-  const getStatusObj = (p:any) => paymentStatuses.find(s=>s.id===p.status);
-  const getTenantObj = (p:any) => tenants.find(t=>t.id===p.tenant);
+  const getStatusObj = (d:any) => depositStatuses.find(s=>s.id===d.status);
+  const getTenantObj = (d:any) => tenants.find(t=>t.id===d.tenant);
 
   return (
     <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
@@ -200,10 +207,10 @@ export default function PaymentsPageManager() {
           <div className="absolute -top-10 -right-10 w-56 h-56 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
           <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-xl"><span className="material-icons text-white text-2xl">payments</span></div>
+              <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-xl"><span className="material-icons text-white text-2xl">security</span></div>
               <div>
-                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">Payment Management</h1>
-                <p className="text-gray-600 text-sm mt-1">Track rent invoices, statuses and revenue</p>
+                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">Security Deposits Management</h1>
+                <p className="text-gray-600 text-sm mt-1">Track security deposits, statuses and refunds</p>
               </div>
             </div>
             <div className="flex gap-3 flex-wrap w-full md:w-auto items-center justify-center">
@@ -211,24 +218,24 @@ export default function PaymentsPageManager() {
                 <span className={`material-icons text-sm ${refreshing?'animate-spin':''}`}>{refreshing?'progress_activity':'refresh'}</span>
                 Refresh
               </button>
-              <button onClick={()=>setShowPaymentForm(true)} className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow hover:shadow-lg text-sm font-medium flex items-center gap-2"><span className="material-icons text-sm">add_card</span>New Payment</button>
+              <button onClick={()=>setShowDepositForm(true)} className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow hover:shadow-lg text-sm font-medium flex items-center gap-2"><span className="material-icons text-sm">add_card</span>New Deposit</button>
             </div>
           </div>
         </div>
 
         {/* Metrics (minor: add sm:grid-cols-2 for narrow) */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-5 mb-10">
-          <MetricCard label="TOTAL" icon="paid" value={allPayments.length} desc="All records" color="from-blue-500 to-blue-600" />
-          <MetricCard label="PENDING" icon="schedule" value={pendingPayments.length} desc="Awaiting" color="from-amber-500 to-amber-600" />
-          <MetricCard label="OVERDUE" icon="error" value={overduePayments.length} desc="Needs action" color="from-red-500 to-red-600" />
-            <MetricCard label="MONTH REVENUE" icon="trending_up" value={formatCurrency(thisMonthRevenue)} desc="Paid this month" color="from-emerald-500 to-emerald-600" />
+          <MetricCard label="TOTAL" icon="security" value={totalDeposits} desc="All deposits" color="from-blue-500 to-blue-600" />
+          <MetricCard label="PENDING" icon="schedule" value={pendingDepositsCount} desc="Awaiting" color="from-amber-500 to-amber-600" />
+          <MetricCard label="REFUNDED" icon="check_circle" value={refundedDeposits} desc="Returned" color="from-emerald-500 to-emerald-600" />
+          <MetricCard label="OVERDUE" icon="error" value={overdueDepositsCount} desc="Needs action" color="from-red-500 to-red-600" /> {/* UPDATED: Use filtered count */}
         </div>
 
         {/* Filters - UPDATED stacking */}
         <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl p-6 space-y-5 mb-10">
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 items-end">
             <SelectField label="Tenant" value={filterTenant} onChange={v=>setFilterTenant(v as number | '')} options={[{value:'', label:'All Tenants'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username || 'Tenant'}))]} />
-            <SelectField label="Status" value={filterStatus} onChange={v=>setFilterStatus(v as number | '')} options={[{value:'', label:'All Status'}, ...paymentStatuses.map(s=>({ value: s.id, label: s.name }))]} />
+            <SelectField label="Status" value={filterStatus} onChange={v=>setFilterStatus(v as number | '')} options={[{value:'', label:'All Status'}, ...depositStatuses.map(s=>({ value: s.id, label: s.name }))]} />
             <SelectField label="Month" value={filterMonth} onChange={v=>setFilterMonth(v as number | '')} options={[{value:'', label:'All Months'}, ...months.map(m=>({ value: m.value, label: m.name }))]} />
             <SelectField label="Year" value={filterYear} onChange={v=>setFilterYear(Number(v))} options={[{value: filterYear, label: String(filterYear)}, {value: filterYear-1, label: String(filterYear-1)}, {value: filterYear+1, label: String(filterYear+1)}]} />
           </div>
@@ -242,17 +249,17 @@ export default function PaymentsPageManager() {
         {/* MOBILE CARDS (NEW) */}
         {window.innerWidth < 640 ? (
         <div className="space-y-4">
-          {paymentsLoading ? (
-            <div className="text-center text-sm text-gray-500 py-8">Loading payments...</div>
-          ) : displayedPayments.length === 0 ? (
-            <div className="text-center text-sm text-gray-500 py-8">No payments found</div>
+          {depositsLoading ? (
+            <div className="text-center text-sm text-gray-500 py-8">Loading deposits...</div>
+          ) : displayedDeposits.length === 0 ? (
+            <div className="text-center text-sm text-gray-500 py-8">No deposits found</div>
           ) : (
-            displayedPayments.map(p => {
-              const statusObj = getStatusObj(p);
-              const tenant = getTenantObj(p);
-              const overdue = isOverdue(p.due_date, statusObj?.name||'');
+            displayedDeposits.map(d => {
+              const statusObj = getStatusObj(d);
+              const tenant = getTenantObj(d);
+              const overdue = isOverdue(d.due_date, statusObj?.name||'');
               return (
-                <div key={p.id} className="rounded-2xl bg-white/70 backdrop-blur border border-white/30 p-4 shadow-sm">
+                <div key={d.id} className="rounded-2xl bg-white/70 backdrop-blur border border-white/30 p-4 shadow-sm">
                   <div className="flex justify-between items-start gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-800 truncate">
@@ -265,20 +272,20 @@ export default function PaymentsPageManager() {
                     </span>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
-                    <BadgeMobile label="Amount" value={formatCurrency(p.amount)} />
-                    <BadgeMobile label="Period" value={`${months.find(m=>m.value===p.payment_for_month)?.name} ${p.payment_for_year}`} />
-                    <BadgeMobile label="Due" value={formatDate(p.due_date)} danger={overdue} />
-                    <BadgeMobile label="Type" value={p.payment_type || 'N/A'} /> {/* NEW: Added payment type badge */}
-                    {p.payment_method && <BadgeMobile label="Method" value={p.payment_method} />}
-                    {p.reference_number && <BadgeMobile label="Ref" value={p.reference_number} />}
+                    <BadgeMobile label="Amount" value={formatCurrency(d.amount)} />
+                    <BadgeMobile label="Refund" value={d.refund_status || 'N/A'} />
+                    <BadgeMobile label="Due" value={formatDate(d.due_date)} danger={overdue} />
+                    <BadgeMobile label="Status" value={getStatusName(d.status)} /> {/* UPDATED: Show status name */}
+                    {d.payment_method && <BadgeMobile label="Method" value={d.payment_method} />}
+                    {d.reference_number && <BadgeMobile label="Ref" value={d.reference_number} />}
                   </div>
                   {overdue && <p className="mt-2 text-[10px] font-semibold text-rose-600">OVERDUE</p>}
-                  {p.paid_at && <p className="mt-1 text-[10px] text-emerald-600">Paid {formatDate(p.paid_at)}</p>}
+                  {d.paid_at && <p className="mt-1 text-[10px] text-emerald-600">Paid {formatDate(d.paid_at)}</p>}
                   <div className="mt-4 flex gap-2">
                     <button
                       onClick={()=>{
-                        setSelectedPayment(p);
-                        setUpdateForm({ tenant: p.tenant, amount: p.amount, payment_for_year: p.payment_for_year, due_date: p.due_date, status_id: p.status, months_paid: [p.payment_for_month], payment_method: p.payment_method || '', reference_number: p.reference_number || '', notes: p.notes || '', payment_type: p.payment_type || '' }); // FIXED: Added payment_type
+                        setSelectedDeposit(d);
+                        setUpdateForm({ tenant: d.tenant, amount: d.amount, payment_for_year: d.payment_for_year, due_date: d.due_date, status_id: d.status, payment_method: d.payment_method || '', reference_number: d.reference_number || '', notes: d.notes || '', refund_status: d.refund_status || '', payment_type: 'Security Deposit' }); // NEW: Set payment_type
                         setShowUpdateForm(true);
                       }}
                       className="flex-1 px-3 py-2 rounded-lg bg-blue-600/10 text-blue-600 text-[11px] font-medium flex items-center justify-center gap-1"
@@ -287,7 +294,7 @@ export default function PaymentsPageManager() {
                     </button>
                     <button
                       disabled={deleting}
-                      onClick={()=>handleDelete(p)}
+                      onClick={()=>handleDelete(d)}
                       className="flex-1 px-3 py-2 rounded-lg bg-rose-600/10 text-rose-600 text-[11px] font-medium flex items-center justify-center gap-1 disabled:opacity-50"
                     >
                       <span className="material-icons text-[14px]">{deleting?'hourglass_top':'delete'}</span>
@@ -304,50 +311,49 @@ export default function PaymentsPageManager() {
         {window.innerWidth >= 640 ? (
         <div className="sm:block backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl overflow-hidden">
           <div className="px-6 py-4 flex items-center justify-between border-b border-white/20">
-            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2"><span className="material-icons text-blue-600 text-base">table_view</span>Payments <span className="text-xs px-2 py-0.5 rounded-full bg-blue-600/10 text-blue-600 font-medium">{displayedPayments.length}</span></h2>
-            {paymentsLoading && <span className="text-xs text-blue-600 flex items-center gap-1"><span className="material-icons text-[14px] animate-spin">progress_activity</span>Loading...</span>}
+            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2"><span className="material-icons text-blue-600 text-base">security</span>Security Deposits <span className="text-xs px-2 py-0.5 rounded-full bg-blue-600/10 text-blue-600 font-medium">{displayedDeposits.length}</span></h2>
+            {depositsLoading && <span className="text-xs text-blue-600 flex items-center gap-1"><span className="material-icons text-[14px] animate-spin">progress_activity</span>Loading...</span>}
           </div>
-          {paymentsLoading ? (
-            <div className="py-16 text-center text-sm text-gray-500">Loading payments...</div>
-          ) : displayedPayments.length === 0 ? (
-            <div className="py-16 text-center text-sm text-gray-500">No payments found</div>
+          {depositsLoading ? (
+            <div className="py-16 text-center text-sm text-gray-500">Loading deposits...</div>
+          ) : displayedDeposits.length === 0 ? (
+            <div className="py-16 text-center text-sm text-gray-500">No deposits found</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-white/60">
                   <tr className="text-[11px] uppercase tracking-wide text-gray-500">
-                    <Th>Tenant</Th><Th>Amount</Th><Th>Type</Th><Th>Period</Th><Th>Due</Th><Th>Status</Th><Th>Method</Th><Th>Actions</Th> {/* NEW: Added Type column */}
+                    <Th>Tenant</Th><Th>Amount</Th><Th>Refund Status</Th><Th>Due</Th><Th>Status</Th><Th>Method</Th><Th>Actions</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/30">
-                  {displayedPayments.map(p => {
-                    const statusObj = paymentStatuses.find(s=>s.id===p.status);
-                    const tenant = tenants.find(t=>t.id===p.tenant);
+                  {displayedDeposits.map(d => {
+                    const statusObj = depositStatuses.find(s=>s.id===d.status);
+                    const tenant = tenants.find(t=>t.id===d.tenant);
                     return (
-                      <tr key={p.id} className="hover:bg-white/60">
+                      <tr key={d.id} className="hover:bg-white/60">
                         <Td>
                           <div className="font-medium text-gray-800">{tenant ? `${tenant.user_details?.first_name||''} ${tenant.user_details?.last_name||''}`.trim() || tenant.user_details?.username : '—'}</div>
                           <div className="text-[11px] text-gray-500">{tenant?.user_details?.email || '—'}</div>
                         </Td>
-                        <Td><span className="font-semibold text-gray-800">{formatCurrency(p.amount)}</span></Td>
-                        <Td>{p.payment_type || 'N/A'}</Td> {/* NEW: Added payment type cell */}
-                        <Td>{months.find(m=>m.value===p.payment_for_month)?.name} {p.payment_for_year}</Td>
+                        <Td><span className="font-semibold text-gray-800">{formatCurrency(d.amount)}</span></Td>
+                        <Td>{d.refund_status || 'N/A'}</Td>
                         <Td>
-                          <div className="flex flex-col"><span>{formatDate(p.due_date)}</span>{isOverdue(p.due_date, statusObj?.name||'') && <span className="text-[10px] font-semibold text-red-600">OVERDUE</span>}{p.paid_at && <span className="text-[10px] text-emerald-600">Paid {formatDate(p.paid_at)}</span>}</div>
+                          <div className="flex flex-col"><span>{formatDate(d.due_date)}</span>{isOverdue(d.due_date, statusObj?.name||'') && <span className="text-[10px] font-semibold text-red-600">OVERDUE</span>}{d.paid_at && <span className="text-[10px] text-emerald-600">Paid {formatDate(d.paid_at)}</span>}</div>
                         </Td>
                         <Td>
                           <span className={`px-2 py-1 rounded-md text-[11px] font-medium inline-flex items-center gap-1 ${statusColor(statusObj?.name||'Unknown')}`}>
-                            <span className="material-icons text-[14px]">{(statusObj?.name||'').toLowerCase()==='paid'?'task_alt':(statusObj?.name||'').toLowerCase()==='overdue'?'warning':(statusObj?.name||'').toLowerCase()==='pending'?'schedule':'payments'}</span>
-                            {statusObj?.name || '—'}
+                            <span className="material-icons text-[14px]">{(statusObj?.name||'').toLowerCase()==='paid'?'task_alt':(statusObj?.name||'').toLowerCase()==='overdue'?'warning':(statusObj?.name||'').toLowerCase()==='pending'?'schedule':'security'}</span>
+                            {statusObj?.name || 'Unknown'} {/* UPDATED: Ensure status name is displayed */}
                           </span>
                         </Td>
-                        <Td><span className="text-[11px] text-gray-700">{p.payment_method || '—'}</span></Td>
+                        <Td><span className="text-[11px] text-gray-700">{d.payment_method || '—'}</span></Td>
                         <Td>
                           <div className="flex items-center gap-2">
-                            <button onClick={()=>{ setSelectedPayment(p); setUpdateForm({ tenant: p.tenant, amount: p.amount, payment_for_year: p.payment_for_year, due_date: p.due_date, status_id: p.status, months_paid: [p.payment_for_month], payment_method: p.payment_method || '', reference_number: p.reference_number || '', notes: p.notes || '', payment_type: p.payment_type || '' }); setShowUpdateForm(true); }} className="px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-600 text-[11px] font-medium hover:bg-blue-600/20 flex items-center gap-1"> 
+                            <button onClick={()=>{ setSelectedDeposit(d); setUpdateForm({ tenant: d.tenant, amount: d.amount, payment_for_year: d.payment_for_year, due_date: d.due_date, status_id: d.status, payment_method: d.payment_method || '', reference_number: d.reference_number || '', notes: d.notes || '', refund_status: d.refund_status || '', payment_type: 'Security Deposit' }); setShowUpdateForm(true); }} className="px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-600 text-[11px] font-medium hover:bg-blue-600/20 flex items-center gap-1"> 
                               <span className="material-icons text-[14px]">edit</span>Edit
                             </button>
-                            <button disabled={deleting} onClick={()=>handleDelete(p)} className="px-3 py-1.5 rounded-lg bg-red-600/10 text-red-600 text-[11px] font-medium hover:bg-red-600/20 flex items-center gap-1 disabled:opacity-40">
+                            <button disabled={deleting} onClick={()=>handleDelete(d)} className="px-3 py-1.5 rounded-lg bg-red-600/10 text-red-600 text-[11px] font-medium hover:bg-red-600/20 flex items-center gap-1 disabled:opacity-40">
                               <span className="material-icons text-[14px]">{deleting?'hourglass_top':'delete'}</span>Del
                             </button>
                           </div>
@@ -362,63 +368,55 @@ export default function PaymentsPageManager() {
         </div>) : null}
       </div>
 
-      {/* Create Payment Modal - UPDATED for mobile full screen */}
-      {showPaymentForm && (
-        <Modal onClose={()=>setShowPaymentForm(false)} title="Create Payment" icon="add_card">
-          <form onSubmit={handleCreatePayment} className="space-y-6">
+      {/* Create Deposit Modal - UPDATED for mobile full screen */}
+      {showDepositForm && (
+        <Modal onClose={()=>setShowDepositForm(false)} title="Create Security Deposit" icon="add_card">
+          <form onSubmit={handleCreateDeposit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Select label="Tenant *" value={paymentForm.tenant||''} required onChange={v=>setPaymentForm(f=>({...f,tenant:Number(v)}))} options={[{value:'', label:'Select Tenant'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username }))]} />
-              <Input label="Amount (UGX) *" type="number" value={paymentForm.amount||''} required onChange={v=>setPaymentForm(f=>({...f,amount:Number(v)}))} placeholder="500000" />
-              {/* <Select label="Month *" value={paymentForm.payment_for_month} required onChange={v=>setPaymentForm(f=>({...f,payment_for_month:Number(v)}))} options={months.map(m=>({ value:m.value, label:m.name }))} /> */}
-              <Select label="Year *" value={paymentForm.payment_for_year} required onChange={v=>setPaymentForm(f=>({...f,payment_for_year:Number(v)}))} options={[paymentForm.payment_for_year, paymentForm.payment_for_year+1, paymentForm.payment_for_year-1].map(y=>({ value:y, label:String(y) }))} />
-              <Input label="Due Date *" type="date" value={paymentForm.due_date} required onChange={v=>setPaymentForm(f=>({...f,due_date:v}))} />
-              <Select label="Status *" value={paymentForm.status} required onChange={v=>setPaymentForm(f=>({...f,status:Number(v)}))} options={paymentStatuses.map(s=>({ value:s.id, label:s.name }))} />
-              <Select label="Method" value={paymentForm.payment_method||''} onChange={v=>setPaymentForm(f=>({...f,payment_method:v}))} options={[{value:'',label:'Select'}, ...paymentMethods.map(m=>({ value:m, label:m }))]} />
-              <Input label="Reference" value={paymentForm.reference_number||''} onChange={v=>setPaymentForm(f=>({...f,reference_number:v}))} placeholder="TXN123..." />
-              <Select label="Payment Type" value={paymentForm.payment_type} onChange={v=>setPaymentForm(f=>({...f,payment_type:v}))} options={[{value:'', label:'Select Type'}, ...paymentTypes.map(t=>({ value:t, label:t }))]} /> {/* NEW: Added payment type select */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Months Paid For</label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 text-[11px]">
-                  {months.map(m=> (
-                    <button type="button" key={m.value} onClick={()=>toggleCreateMonth(m.value)} className={`px-2 py-1 rounded-lg border transition ${paymentForm.months_paid?.includes(m.value)?'bg-blue-600 text-white border-blue-600':'bg-white/50 border-white/30 hover:bg-white/70'}`}>{m.name.slice(0,3)}</button>
-                  ))}
-                </div>
-              </div>
-              <Textarea className="md:col-span-2" label="Notes" value={paymentForm.notes||''} onChange={v=>setPaymentForm(f=>({...f,notes:v}))} placeholder="January rent" />
+              <Select label="Tenant *" value={depositForm.tenant||''} required onChange={v=>setDepositForm(f=>({...f,tenant:Number(v)}))} options={[{value:'', label:'Select Tenant'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username }))]} />
+              <Input label="Amount (UGX) *" type="number" value={depositForm.amount||''} required onChange={v=>setDepositForm(f=>({...f,amount:Number(v)}))} placeholder="500000" />
+              <Select label="Year *" value={depositForm.payment_for_year} required onChange={v=>setDepositForm(f=>({...f,payment_for_year:Number(v)}))} options={[depositForm.payment_for_year, depositForm.payment_for_year+1, depositForm.payment_for_year-1].map(y=>({ value:y, label:String(y) }))} />
+              <Input label="Due Date *" type="date" value={depositForm.due_date} required onChange={v=>setDepositForm(f=>({...f,due_date:v}))} />
+              <Select label="Status *" value={depositForm.status} required onChange={v=>setDepositForm(f=>({...f,status:Number(v)}))} options={depositStatuses.map(s=>({ value:s.id, label:s.name }))} />
+              <Select label="Method" value={depositForm.payment_method||''} onChange={v=>setDepositForm(f=>({...f,payment_method:v}))} options={[{value:'',label:'Select'}, ...paymentMethods.map(m=>({ value:m, label:m }))]} />
+              <Input label="Reference" value={depositForm.reference_number||''} onChange={v=>setDepositForm(f=>({...f,reference_number:v}))} placeholder="TXN123..." />
+              <Select label="Refund Status" value={depositForm.refund_status||''} onChange={v=>setDepositForm(f=>({...f,refund_status:v}))} options={[{value:'',label:'Select'}, ...refundStatuses.map(r=>({ value:r, label:r }))]} />
+              <Textarea className="md:col-span-2" label="Notes" value={depositForm.notes||''} onChange={v=>setDepositForm(f=>({...f,notes:v}))} placeholder="Deposit details" />
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button type="button" variant="secondary" icon="close" onClick={()=>setShowPaymentForm(false)}>Cancel</Button>
+              <Button type="button" variant="secondary" icon="close" onClick={()=>setShowDepositForm(false)}>Cancel</Button>
               <Button type="submit" loading={creating} icon="save">Create</Button>
             </div>
           </form>
         </Modal>
       )}
 
-      {/* Update Payment Modal - UPDATED for mobile full screen */}
-      {showUpdateForm && selectedPayment && (
-        <Modal onClose={()=>setShowUpdateForm(false)} title="Update Payments" icon="edit">
+      {/* Update Deposit Modal - UPDATED for mobile full screen */}
+      {showUpdateForm && selectedDeposit && (
+        <Modal onClose={()=>setShowUpdateForm(false)} title="Update Security Deposit" icon="edit">
           <div className="mb-4 p-4 rounded-2xl bg-white/60 backdrop-blur border border-white/30 text-sm text-gray-700">
-            <p className="font-semibold text-gray-800 mb-1 flex items-center gap-2"><span className="material-icons text-blue-600 text-base">person</span>Tenant #{selectedPayment.tenant}</p>
-            <p className="text-[11px] text-gray-500">Period: {months.find(m=>m.value===selectedPayment.payment_for_month)?.name} {selectedPayment.payment_for_year}</p>
+            <p className="font-semibold text-gray-800 mb-1 flex items-center gap-2"><span className="material-icons text-blue-600 text-base">person</span>Tenant #{selectedDeposit.tenant}</p>
+            <p className="text-[11px] text-gray-500">Deposit for {selectedDeposit.payment_for_year}</p>
           </div>
-          <form onSubmit={handleUpdatePayment} className="space-y-6">
+          <form onSubmit={handleUpdateDeposit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Select label="Tenant *" value={updateForm.tenant||''} required onChange={v=>setUpdateForm(f=>({...f,tenant:Number(v)}))} options={[{value:'', label:'Select Tenant'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username }))]} />
               <Input label="Amount (UGX) *" type="number" value={updateForm.amount||''} required onChange={v=>setUpdateForm(f=>({...f,amount:Number(v)}))} placeholder="500000" />
               <Select label="Year *" value={updateForm.payment_for_year} required onChange={v=>setUpdateForm(f=>({...f,payment_for_year:Number(v)}))} options={[updateForm.payment_for_year, updateForm.payment_for_year+1, updateForm.payment_for_year-1].map(y=>({ value:y, label:String(y) }))} />
               <Input label="Due Date *" type="date" value={updateForm.due_date} required onChange={v=>setUpdateForm(f=>({...f,due_date:v}))} />
-              <Select label="Status *" value={updateForm.status_id||''} required onChange={v=>setUpdateForm(f=>({...f,status_id:Number(v)}))} options={paymentStatuses.map(s=>({ value:s.id, label:s.name }))} />
+              <Select 
+                label="Status *" 
+                value={updateForm.status_id||''} 
+                required 
+                onChange={v=>setUpdateForm(f=>({...f,status_id:Number(v)}))} 
+                options={depositStatuses.map(s=>({ 
+                  value:s.id, 
+                  label:s.name 
+                }))} 
+              />
               <Select label="Method" value={updateForm.payment_method} onChange={v=>setUpdateForm(f=>({...f,payment_method:v}))} options={[{value:'',label:'Select'}, ...paymentMethods.map(m=>({ value:m, label:m }))]} />
               <Input label="Reference" value={updateForm.reference_number} onChange={v=>setUpdateForm(f=>({...f,reference_number:v}))} placeholder="TXN123..." />
-              <Select label="Payment Type" value={updateForm.payment_type} onChange={v=>setUpdateForm(f=>({...f,payment_type:v}))} options={[{value:'', label:'Select Type'}, ...paymentTypes.map(t=>({ value:t, label:t }))]} /> {/* NEW: Added payment type select */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Months Paid For</label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 text-[11px]">
-                  {months.map(m=> (
-                    <button type="button" key={m.value} onClick={()=>toggleMonth(m.value)} className={`px-2 py-1 rounded-lg border transition ${updateForm.months_paid.includes(m.value)?'bg-blue-600 text-white border-blue-600':'bg-white/50 border-white/30 hover:bg-white/70'}`}>{m.name.slice(0,3)}</button>
-                  ))}
-                </div>
-              </div>
+              <Select label="Refund Status" value={updateForm.refund_status} onChange={v=>setUpdateForm(f=>({...f,refund_status:v}))} options={[{value:'',label:'Select'}, ...refundStatuses.map(r=>({ value:r, label:r }))]} />
               <Textarea className="md:col-span-2" label="Notes" value={updateForm.notes} onChange={v=>setUpdateForm(f=>({...f,notes:v}))} placeholder="Update details" />
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">

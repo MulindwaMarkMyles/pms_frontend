@@ -3,14 +3,16 @@ import { apiSlice } from '../store';
 export const paymentApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Get all payments with detailed information (tenant, apartment, status details)
-    getPayments: builder.query<any[], { tenant_id?: number; status_id?: number; month?: number; year?: number }>({
+    getPayments: builder.query<any[], { tenant_id?: number; status_id?: number; month?: number; year?: number, payment_type?: string }>({
       query: (params = {}) => {
         const searchParams = new URLSearchParams();
         if (params.tenant_id) searchParams.append('tenant_id', params.tenant_id.toString());
         if (params.status_id) searchParams.append('status_id', params.status_id.toString());
         if (params.month) searchParams.append('month', params.month.toString());
         if (params.year) searchParams.append('year', params.year.toString());
-        return `/api/payments/payments/?${searchParams.toString()}`;
+        if (params.payment_type) searchParams.append('payment_type', params.payment_type.toString());
+        const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+        return `/api/payments/payments/${queryString}`;
       },
       providesTags: ['Payment'],
     }),

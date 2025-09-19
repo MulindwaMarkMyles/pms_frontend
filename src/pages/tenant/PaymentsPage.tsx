@@ -14,6 +14,7 @@ interface Payment {
   id: string;
   amount: number;
   payment_for_month: number;
+  payment_type: string;
   payment_for_year: number;
   due_date: string;
   paid_at?: string;
@@ -34,7 +35,8 @@ export default function PaymentsPage() {
     payment_for_year: new Date().getFullYear(),
     due_date: '',
     notes: '',
-    receipt_file: null as File | null
+    receipt_file: null as File | null,
+    payment_type: '' // NEW: Added payment_type to form state
   });
 
   // API hooks
@@ -56,6 +58,15 @@ export default function PaymentsPage() {
     'Credit Card',
     'Debit Card',
     'Cheque'
+  ];
+
+  // NEW: Added payment types options
+  const paymentTypes = [
+    'Rent',
+    'Security Deposit',
+    'Maintenance',
+    'Utilities',
+    'Other'
   ];
 
   const months = [
@@ -80,16 +91,46 @@ export default function PaymentsPage() {
     return isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
   };
 
+  // Status mapping from ID to name
+    const statusMap: Record<number, string> = {
+      1: 'Pending',
+      2: 'Paid',
+      3: 'Overdue',
+      4: 'Partial',
+      5: 'Cancelled',
+      6: 'Refunded',
+      7: 'Processing',
+      8: 'Failed'
+    };
+
+  // Helper function to format status text consistently
+  const formatStatusName = (status: string | undefined) => {
+    console.log('Formatting status:', status);
+    if (!status) return 'Unknown';
+    
+    const id = parseInt(status);
+    if (isNaN(id)) return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    
+    return statusMap[id] || 'Unknown';
+  };
+
   const getStatusColor = (status: string) => {
-    // FIX: call toLowerCase()
-    switch (status?.toString().toLowerCase()) {
+    switch (status.toLowerCase()) {
       case 'paid':
-      case 'acknowledged':
         return 'bg-green-100 text-green-700';
       case 'pending':
-      case 'processing':
         return 'bg-yellow-100 text-yellow-700';
       case 'overdue':
+        return 'bg-red-100 text-red-700';
+      case 'partial':
+        return 'bg-indigo-100 text-indigo-700';
+      case 'processing':
+        return 'bg-blue-100 text-blue-700';
+      case 'refunded':
+        return 'bg-teal-100 text-teal-700';
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-700';
+      case 'failed':
         return 'bg-red-100 text-red-700';
       default:
         return 'bg-gray-100 text-gray-700';
@@ -107,6 +148,7 @@ export default function PaymentsPage() {
     formData.append('payment_for_year', paymentForm.payment_for_year.toString());
     formData.append('due_date', paymentForm.due_date);
     formData.append('notes', paymentForm.notes);
+    formData.append('payment_type', paymentForm.payment_type); // NEW: Added payment_type to FormData
     
     if (paymentForm.receipt_file) {
       formData.append('receipt_file', paymentForm.receipt_file);
@@ -123,7 +165,8 @@ export default function PaymentsPage() {
         payment_for_year: new Date().getFullYear(),
         due_date: '',
         notes: '',
-        receipt_file: null
+        receipt_file: null,
+        payment_type: '' // NEW: Reset payment_type
       });
     } catch (error: any) {
       console.error('Error logging payment:', error);
@@ -139,9 +182,9 @@ export default function PaymentsPage() {
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow hover:shadow-lg transition">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Paid</p>
+              <p className="text-sm font-medium text-gray-600">Total Payments</p>
               <p className="text-2xl font-bold text-green-600">
-                {formatCurrency(paymentStatus?.total_paid || 0)}
+                {paymentStatus?.total_paid || 0}
               </p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-600" />
@@ -180,7 +223,8 @@ export default function PaymentsPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Overdue</p>
               <p className="text-2xl font-bold text-red-600">
-                {allPayments.filter(p => p.status?.toString().toLowerCase() === 'overdue').length}
+                {allPayments.filter(p => formatStatusName(p.status)?.toLowerCase() === 'overdue').length}
+                {/* UPDATED: Use formatStatusName to ensure consistent casing */}
               </p>
             </div>
             <AlertTriangle className="w-8 h-8 text-red-600" />
@@ -228,6 +272,7 @@ export default function PaymentsPage() {
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="text-left font-medium text-gray-600 py-3">Amount</th>
+                    <th className="text-left font-medium text-gray-600 py-3">Type</th> {/* NEW: Added Payment Type column */}
                     <th className="text-left font-medium text-gray-600 py-3">Month/Year</th>
                     <th className="text-left font-medium text-gray-600 py-3">Due Date</th>
                     <th className="text-left font-medium text-gray-600 py-3">Paid Date</th>
@@ -239,10 +284,14 @@ export default function PaymentsPage() {
                 <tbody>
                   {allPayments.map((payment: Payment) => {
                     const status = payment.acknowledgement_status || payment.status || 'Unknown';
+                    const formattedStatus = formatStatusName(status); // UPDATED: Format status consistently
                     return (
                       <tr key={payment.id} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-4 font-semibold text-gray-900">
                           {formatCurrency(payment.amount)}
+                        </td>
+                        <td className="py-4 text-gray-600">
+                          {payment.payment_type || 'N/A'} {/* NEW: Display payment type */}
                         </td>
                         <td className="py-4 text-gray-600">
                           {months.find(m => m.value === payment.payment_for_month)?.label} {payment.payment_for_year}
@@ -257,8 +306,8 @@ export default function PaymentsPage() {
                           {payment.payment_method || 'N/A'}
                         </td>
                         <td className="py-4">
-                          <span className={`px-3 py-1 text-xs rounded-full font-medium ${getStatusColor(status)}`}>
-                            {status}
+                          <span className={`px-3 py-1 text-xs rounded-full font-medium ${getStatusColor(formattedStatus)}`}>
+                            {formattedStatus} {/* UPDATED: Use formatted status */}
                           </span>
                         </td>
                         <td className="py-4">
@@ -391,6 +440,21 @@ export default function PaymentsPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
+                <select
+                  value={paymentForm.payment_type}
+                  onChange={(e) => setPaymentForm({...paymentForm, payment_type: e.target.value})}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select Type</option>
+                  {paymentTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>
@@ -433,7 +497,8 @@ export default function PaymentsPage() {
                   payment_for_year: new Date().getFullYear(),
                   due_date: '',
                   notes: '',
-                  receipt_file: null
+                  receipt_file: null,
+                  payment_type: '' // NEW: Reset payment_type
                 })}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
@@ -482,8 +547,8 @@ export default function PaymentsPage() {
             <div className="absolute -bottom-20 -right-16 w-96 h-96 bg-gradient-to-br from-blue-400/10 via-indigo-500/10 to-purple-600/10 rounded-full blur-3xl" />
             <div className="relative flex flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-5">
-                <div className="p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl">
-                  <img src="/logo.png" alt="Edith Estates Logo" className="w-10 h-10 rounded-2xl" />
+                <div className="p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl flex items-center justify-center">
+                  <CreditCard className="w-8 h-8 text-white" />
                 </div>
                 <div>
                   <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">

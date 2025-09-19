@@ -3,11 +3,12 @@ import {
   useGetComplaintCategoriesQuery,
   useGetMyComplaintsQuery,
   useLogComplaintMutation,
+  useUpdateComplaintMutation, // We'll need to add this to tenantApi.ts
 } from '../../services/tenantApi';
 import { useGetComplaintStatusesQuery } from '../../services/complaintApi';
 import {
   RefreshCw, Plus, X, FileText, AlertTriangle, CheckCircle,
-  Clock, MessageSquare, Circle, Loader2, BarChart3, Inbox, Tag
+  Clock, MessageSquare, Circle, Loader2, BarChart3, Inbox, Tag, Edit
 } from 'lucide-react';
 
 // Added / updated interfaces to match API shape
@@ -48,26 +49,36 @@ const safeDate = (v?: string) => {
 
 export default function TenantComplaintsPage() {
   const [showForm, setShowForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ // UPDATED: Added urgency and status
+    category: '',
+    title: '',
+    description: '',
+    attachment: null as File | null,
+    urgency: '',
+    status: ''
+  });
   const [formData, setFormData] = useState({
     category: '',
     title: '',
     description: '',
     attachment: null as File | null
   });
-  // ADDED: status filter
   const [statusFilter, setStatusFilter] = useState<string>('');
 
   // API hooks
   const { data: categories = [], isLoading: categoriesLoading, refetch: refetchCategories } = useGetComplaintCategoriesQuery();
   const { data: complaints = [], isLoading: complaintsLoading, refetch: refetchComplaints } = useGetMyComplaintsQuery();
-  const { data: statuses = [], isLoading: statusesLoading, refetch: refetchStatuses } = useGetComplaintStatusesQuery(); // ADDED
+  const { data: statuses = [], isLoading: statusesLoading, refetch: refetchStatuses } = useGetComplaintStatusesQuery();
   const [logComplaint, { isLoading: submitting }] = useLogComplaintMutation();
+  const [updateComplaint, { isLoading: updating }] = useUpdateComplaintMutation();
 
-  // UPDATED: dynamic status color using statuses list fallback
+  // Status and urgency styling helpers
   const getStatusColor = (status: string) => {
     const s = status?.toLowerCase().trim();
     if (!s) return 'bg-gray-100 text-gray-800';
-    // Prefer matching canonical statuses if API returns hex/color fields in future (placeholder)
+    
     switch (s) {
       case 'open': return 'bg-blue-100 text-blue-800';
       case 'in progress': return 'bg-yellow-100 text-yellow-800';
@@ -77,7 +88,6 @@ export default function TenantComplaintsPage() {
     }
   };
 
-  // NEW: urgency color + icon map
   const urgencyStyle = (u?: string) => {
     switch ((u||'').toLowerCase()) {
       case 'high': return 'bg-rose-100 text-rose-600';
@@ -88,14 +98,14 @@ export default function TenantComplaintsPage() {
     }
   };
 
-  // UPDATED: refresh to include statuses
+  // Handle refresh of all data
   const handleRefresh = () => {
     refetchCategories();
     refetchComplaints();
-    refetchStatuses(); // ADDED
+    refetchStatuses();
   };
 
-  // NEW: normalize complaints response (array or wrapped object)
+  // Normalize complaints response (array or wrapped object)
   const complaintsArray = Array.isArray(complaints)
     ? complaints
     : (() => {
@@ -110,16 +120,17 @@ export default function TenantComplaintsPage() {
         return [];
       })();
 
-  // UPDATED: filtered complaints
+  // Filter complaints based on status
   const visibleComplaints = complaintsArray.filter(c =>
     !statusFilter || (c.status?.name || '').toLowerCase() === statusFilter.toLowerCase()
   );
 
-  // UPDATED: summary counts
+  // Summary counts
   const totalOpen = complaintsArray.filter(c => (c.status?.name || '').toLowerCase() === 'open').length;
   const totalInProgress = complaintsArray.filter(c => (c.status?.name || '').toLowerCase() === 'in progress').length;
   const totalResolved = complaintsArray.filter(c => (c.status?.name || '').toLowerCase() === 'resolved').length;
 
+  // Submit new complaint
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -133,18 +144,59 @@ export default function TenantComplaintsPage() {
 
     try {
       const result = await logComplaint(submitData).unwrap();
-      // UPDATED: unified feedback handling (optional toast hook could be used later)
       alert(result.message || 'Complaint submitted successfully!');
       setShowForm(false);
       setFormData({ category: '', title: '', description: '', attachment: null });
-      refetchComplaints();              // ADDED ensure list refresh
-      setStatusFilter('');              // ADDED reset filter so new item visible
+      refetchComplaints();
+      setStatusFilter('');
     } catch (error: any) {
       console.error('Error submitting complaint:', error);
       alert(error?.data?.error || 'Failed to submit complaint');
     }
   };
 
+  // UPDATED: Handle edit submission with urgency and status
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedComplaint) return;
+
+    const updateData = new FormData();
+    updateData.append('category', editForm.category);
+    updateData.append('title', editForm.title);
+    updateData.append('description', editForm.description);
+    if (editForm.attachment) {
+      updateData.append('attachment', editForm.attachment);
+    }
+    updateData.append('urgency', editForm.urgency); // NEW: Include urgency
+    updateData.append('status', editForm.status); // NEW: Include status
+
+    try {
+      const result = await updateComplaint({ id: selectedComplaint.id, data: updateData }).unwrap();
+      alert(result.message || 'Complaint updated successfully!');
+      setShowEditModal(false);
+      setSelectedComplaint(null);
+      refetchComplaints();
+    } catch (error: any) {
+      console.error('Error updating complaint:', error);
+      alert(error?.data?.error || 'Failed to update complaint');
+    }
+  };
+
+  // Open edit modal
+  const openEditModal = (complaint: any) => {
+    setSelectedComplaint(complaint);
+    setEditForm({
+      category: complaint.category?.id || '',
+      title: complaint.title || '',
+      description: complaint.description || '',
+      attachment: null,
+      urgency: complaint.urgency || '', // NEW: Populate urgency
+      status: complaint.status?.id || '' // NEW: Populate status ID
+    });
+    setShowEditModal(true);
+  };
+
+  // Get category icon (this function was referenced but not defined)
   const getPriorityIcon = (category: string) => {
     switch (category?.toLowerCase()) {
       case 'amenities': return <RefreshCw className="w-5 h-5" />;
@@ -193,8 +245,8 @@ export default function TenantComplaintsPage() {
             <div className="absolute -bottom-20 -right-16 w-96 h-96 bg-gradient-to-br from-blue-400/10 via-indigo-500/10 to-purple-600/10 rounded-full blur-3xl" />
             <div className="relative flex flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-5">
-                <div className="p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl">
-                  <img src="/logo.png" alt="Edith Estates Logo" className="w-10 h-10 rounded-2xl" />
+                <div className="p-4 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl shadow-xl flex items-center justify-center">
+                  <MessageSquare className="w-8 h-8 text-white" />
                 </div>
                 <div>
                   <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">
@@ -398,6 +450,123 @@ export default function TenantComplaintsPage() {
             </div>
           )}
 
+          {/* Complaint Edit Modal */}
+          {showEditModal && selectedComplaint && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={()=> !updating && setShowEditModal(false)}
+              />
+              <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto backdrop-blur-xl bg-white/90 rounded-3xl shadow-2xl border border-white/30 p-8">
+                <div className="flex items-start justify-between mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <Edit className="w-5 h-5 text-rose-600" />
+                    Edit Complaint
+                  </h2>
+                  <button
+                    onClick={()=> !updating && setShowEditModal(false)}
+                    className="p-2 rounded-lg hover:bg-white/60 transition"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleEditSubmit} className="space-y-5">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-600">Category *</label>
+                    <select
+                      value={editForm.category}
+                      onChange={e=>setEditForm(f=>({...f, category:e.target.value}))}
+                      required
+                      className="w-full px-3 py-2 rounded-lg bg-white/70 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    >
+                      <option value="">Select</option>
+                      {categories.map((cat: any)=> (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-600">Title *</label>
+                    <input
+                      value={editForm.title}
+                      onChange={e=>setEditForm(f=>({...f, title:e.target.value}))}
+                      required
+                      placeholder="Short summary"
+                      className="w-full px-3 py-2 rounded-lg bg-white/70 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-600">Description *</label>
+                    <textarea
+                      value={editForm.description}
+                      onChange={e=>setEditForm(f=>({...f, description:e.target.value}))}
+                      required
+                      rows={4}
+                      placeholder="Provide details..."
+                      className="w-full px-3 py-2 rounded-lg bg-white/70 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-600">Urgency</label>
+                    <select
+                      value={editForm.urgency}
+                      onChange={e=>setEditForm(f=>({...f, urgency:e.target.value}))}
+                      className="w-full px-3 py-2 rounded-lg bg-white/70 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    >
+                      <option value="">Select Urgency</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-600">Status</label>
+                    <select
+                      value={editForm.status}
+                      onChange={e=>setEditForm(f=>({...f, status:e.target.value}))}
+                      className="w-full px-3 py-2 rounded-lg bg-white/70 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    >
+                      <option value="">Select Status</option>
+                      {statuses.map((s: any)=> (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-600">Attachment (optional)</label>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={e=>setEditForm(f=>({...f, attachment:e.target.files?.[0]||null}))}
+                      className="w-full text-xs"
+                    />
+                    <p className="text-[10px] text-gray-500 mt-1">Upload a new photo or document.</p>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      disabled={updating}
+                      onClick={()=>setShowEditModal(false)}
+                      className="px-4 py-2 rounded-lg bg-white/70 border border-gray-300 text-sm hover:bg-white/90 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={updating}
+                      className="px-5 py-2 rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-medium shadow hover:shadow-md disabled:opacity-50 flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      {updating ? 'Updating...' : 'Update'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
           {/* Complaints List */}
           <div className="bg-white rounded-xl border border-gray-200 shadow">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -446,6 +615,7 @@ export default function TenantComplaintsPage() {
                         <th className="text-left font-medium text-gray-600 py-3">Created</th>
                         <th className="text-left font-medium text-gray-600 py-3">Urgency</th>
                         <th className="text-left font-medium text-gray-600 py-3">Attachment</th>
+                        <th className="text-left font-medium text-gray-600 py-3">Actions</th> {/* NEW: Added Actions column */}
                       </tr>
                     </thead>
                     <tbody>
@@ -486,6 +656,16 @@ export default function TenantComplaintsPage() {
                             ) : (
                               <span className="text-gray-400 text-sm">—</span>
                             )}
+                          </td>
+                          <td className="py-4"> {/* NEW: Actions column */}
+                            {/* REMOVED: isEditable check to allow editing all complaints */}
+                            <button
+                              onClick={() => openEditModal(complaint)}
+                              className="px-3 py-1 rounded-lg bg-blue-600/10 text-blue-600 text-xs font-medium hover:bg-blue-600/20 flex items-center gap-1"
+                            >
+                              <Edit className="w-3 h-3" />
+                              Edit
+                            </button>
                           </td>
                         </tr>
                       ))}
