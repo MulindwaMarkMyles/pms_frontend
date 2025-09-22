@@ -19,18 +19,21 @@ import TenantDashboard from './pages/tenant/TenantDashboard';
 // import HomePage from './pages/public/HomePage';
 import AboutPage from './pages/public/AboutPage';
 import ContactPage from './pages/public/ContactPage';
-import Iridescence from './components/background';
+import Squares from './components/background';
+// import BG from './components/spline_background';
 
 function App() {
   return (
     <Provider store={store}>
       {/* <NavigationGuard /> - Temporarily disabled to fix redirect issue */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'none', overflow: 'hidden' }}>
-        <Iridescence
-          color={[0.5, 0.9, 1]}
-          mouseReact={false}
-          amplitude={0.1}
-          speed={1.0}
+      <div style={{ position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'all', overflow: 'hidden' }}>
+        {/* <BG /> */}
+        <Squares 
+        speed={0.5} 
+        squareSize={40}
+        direction='diagonal' // up, down, left, right, diagonal
+        borderColor='#225CEA'
+        hoverFillColor='#fff'
         />
       </div>
       <Routes>

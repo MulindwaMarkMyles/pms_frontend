@@ -620,81 +620,67 @@ export default function EstatesPage() {
                                                 {block.apartments.slice(0, 10).map((a: any) => (
                                                   <div
                                                     key={a.id}
-                                                    className="p-3 rounded-xl bg-white/70 border border-white/40 shadow hover:shadow-md text-xs flex flex-col gap-1"
+                                                    className="p-3 rounded-xl bg-white/70 border border-white/40 shadow hover:shadow-md text-xs"
                                                   >
-                                                    <div className="flex items-center gap-2">
-                                                      <DoorOpen className="w-4 h-4 text-indigo-500" />
-                                                      <p className="font-semibold text-gray-700 truncate">
-                                                        {a.number || 'Unit'}
-                                                      </p>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-2 text-[10px] text-gray-500">
-                                                      {a.size && (
-                                                        <span className="flex items-center gap-1">
-                                                          <span className="material-icons text-[12px] text-blue-500">
-                                                            straighten
-                                                          </span>
-                                                          {a.size}m²
-                                                        </span>
-                                                      )}
-                                                      {a.rent_amount && (
-                                                        <span className="flex items-center gap-1">
-                                                          <span className="material-icons text-[12px] text-emerald-500">
-                                                            payments
-                                                          </span>
-                                                          {a.rent_amount}
-                                                        </span>
-                                                      )}
-                                                      {a.number_of_rooms && (
-                                                        <span className="flex items-center gap-1">
-                                                          <span className="material-icons text-[12px] text-amber-500">
-                                                            meeting_room
-                                                          </span>
-                                                          {a.number_of_rooms}r
-                                                        </span>
-                                                      )}
-                                                      {a.color && (
-                                                        <span className="flex items-center gap-1">
-                                                          <span
-                                                            className="material-icons text-[12px]"
-                                                            style={{ color: a.color }}
-                                                          >
-                                                            palette
-                                                          </span>
-                                                          {a.color}
-                                                        </span>
-                                                      )}
-                                                    </div>
-                                                    {Array.isArray(a.amenities) && a.amenities.length > 0 && (
-                                                      <div className="flex flex-wrap gap-1">
-                                                        {/* If amenities is array of objects with names, use those; otherwise try to find names */}
-                                                        {a.amenities.slice(0, 3).map((am: any, i: number) => {
-                                                          // Handle both object format and ID format
-                                                          const amenityName = am.name || fetchAmenityNames([am])[0] || String(am);
-                                                          return (
-                                                            <span
-                                                              key={`${a.id}-amenity-${i}`}
-                                                              className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[9px] font-medium"
-                                                            >
-                                                              {amenityName}
+                                                    <div className="flex gap-3 items-start">
+                                                      <ApartmentPreview apt={a} />
+                                                      <div className="flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                          <DoorOpen className="w-4 h-4 text-indigo-500" />
+                                                          <p className="font-semibold text-gray-700 truncate">
+                                                            {a.number || 'Unit'}
+                                                          </p>
+                                                        </div>
+                                                        <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-gray-500">
+                                                          {a.size && (
+                                                            <span className="flex items-center gap-1">
+                                                              <span className="material-icons text-[12px] text-blue-500">
+                                                                straighten
+                                                              </span>
+                                                              {a.size}m²
                                                             </span>
-                                                          );
-                                                        })}
-                                                        {a.amenities.length > 3 && (
-                                                          <span className="text-[9px] text-gray-400">
-                                                            +{a.amenities.length - 3}
-                                                          </span>
+                                                          )}
+                                                          {a.rent_amount && (
+                                                            <span className="flex items-center gap-1">
+                                                              <span className="material-icons text-[12px] text-emerald-500">
+                                                                payments
+                                                              </span>
+                                                              {a.rent_amount}
+                                                            </span>
+                                                          )}
+                                                          {a.number_of_rooms && (
+                                                            <span className="flex items-center gap-1">
+                                                              <span className="material-icons text-[12px] text-amber-500">
+                                                                meeting_room
+                                                              </span>
+                                                              {a.number_of_rooms}r
+                                                            </span>
+                                                          )}
+                                                        </div>
+                                                        {Array.isArray(a.amenities) && a.amenities.length > 0 && (
+                                                          <div className="flex flex-wrap gap-1 mt-2">
+                                                            {a.amenities.slice(0, 3).map((am: any, i: number) => {
+                                                              const amenityName = am.name || fetchAmenityNames([am])[0] || String(am);
+                                                              return (
+                                                                <span
+                                                                  key={`${a.id}-amenity-${i}`}
+                                                                  className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[9px] font-medium"
+                                                                >
+                                                                  {amenityName}
+                                                                </span>
+                                                              );
+                                                            })}
+                                                            {a.amenities.length > 3 && (
+                                                              <span className="text-[9px] text-gray-400">
+                                                                +{a.amenities.length - 3}
+                                                              </span>
+                                                            )}
+                                                          </div>
                                                         )}
                                                       </div>
-                                                    )}
+                                                    </div>
                                                   </div>
-                                                ))}
-                                                {!block.apartmentsLoading &&
-                                                  block.apartments.length === 0 && (
-                                                    <p className="col-span-2 text-[11px] text-gray-500">
-                                                      No apartments found.
-                                                    </p>
-                                                  )}
+                                                 ))} 
                                               </div>
                                             </div>
                                           </div>
@@ -1341,4 +1327,69 @@ function Th({ children }:{children:React.ReactNode}) {
 }
 function Td({ children }:{children:React.ReactNode}) {
   return <td className="px-4 py-3 align-top">{children}</td>;
+}
+
+// Add helper component near the UI atoms (inserted into the same file)
+function ApartmentPreview({ apt }:{apt:any}) {
+  const rooms = Math.max(1, Number(apt.number_of_rooms) || 1);
+  const color = apt.color || '#60a5fa';
+  const rent = apt.rent_amount ? String(apt.rent_amount) : '—';
+  const roomRects = Array.from({ length: rooms }).map((_, i) => {
+    // arrange rectangles in a simple grid
+    const cols = rooms > 3 ? 3 : rooms;
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    const w = 28 / cols;
+    const h = 28 / Math.ceil(rooms / cols);
+    const x = 4 + col * (w + 2);
+    const y = 6 + row * (h + 2);
+    return { x, y, w, h };
+  });
+
+  return (
+    <div className="w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-white/10 to-white/5 border border-white/20 group relative">
+      <div className="w-full h-full relative">
+        <svg viewBox="0 0 36 24" className="w-full h-full block">
+          <defs>
+            <linearGradient id={`g-${apt.id}`} x1="0" x2="1">
+              <stop offset="0" stopColor={color} stopOpacity="0.18" />
+              <stop offset="1" stopColor="#ffffff" stopOpacity="0.06" />
+            </linearGradient>
+          </defs>
+          <rect x="1" y="1" width="34" height="22" rx="2" fill={`url(#g-${apt.id})`} stroke="rgba(0,0,0,0.04)" />
+          {roomRects.map((r, idx) => (
+            <rect
+              key={idx}
+              x={r.x}
+              y={r.y}
+              width={r.w}
+              height={r.h}
+              rx="0.6"
+              fill={idx % 2 === 0 ? color : '#ffffff'}
+              fillOpacity={idx % 2 === 0 ? 0.12 : 0.06}
+              stroke="rgba(0,0,0,0.03)"
+            />
+          ))}
+          {/* unit label */}
+          <text x="4" y="18" fontSize="2.2" fill="#374151" opacity="0.8">{apt.number || 'Unit'}</text>
+        </svg>
+
+        {/* hover overlay */}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-[11px] text-white">
+          <div className="text-center leading-tight">
+            <div className="font-semibold text-sm">{apt.number || 'Unit'}</div>
+            <div className="text-[11px] opacity-90">{apt.size ? `${apt.size}m²` : ''} {apt.number_of_rooms ? `• ${apt.number_of_rooms}r` : ''}</div>
+            {apt.description && <div className="mt-1 text-[10px] opacity-90 line-clamp-2">{apt.description}</div>}
+          </div>
+        </div>
+
+        {/* rent badge */}
+        <div className="absolute bottom-1 left-1">
+          <div className="px-2 py-0.5 bg-white/90 text-xs rounded text-gray-800 font-semibold">
+            {rent}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

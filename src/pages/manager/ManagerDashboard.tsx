@@ -249,11 +249,19 @@ function SystemStatus({dashboard}:{dashboard:any}) {
 	return (
 		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6">
 			<h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2 text-sm"><span className="material-icons text-base text-blue-600">update</span>System Status</h3>
-			<div className="grid grid-cols-2 gap-4 text-sm">
-				<StatusCard label="Last Sync" value={dashboard.lastUpdated ? new Date(dashboard.lastUpdated).toLocaleTimeString() : '—'} />
-				<StatusCard label="API Health" value={<span className="text-emerald-600 flex items-center gap-1"><span className="material-icons text-[14px]">podcasts</span>Stable</span>} />
-				<StatusCard label="Complaints" value={<span className="text-amber-600">{dashboard.pendingComplaints} open</span>} />
-				<StatusCard label="Revenue" value={`USh ${dashboard.monthlyRevenue.toLocaleString()}`} />
+			<div className="grid grid-cols-2 gap-4 text-sm items-stretch w-full">
+				<div className="w-full h-full">
+					<StatusCard label="Last Sync" value={dashboard.lastUpdated ? new Date(dashboard.lastUpdated).toLocaleTimeString() : '—'} />
+				</div>
+				<div className="w-full h-full">
+					<StatusCard label="API Health" value={<span className="text-emerald-600 flex items-center gap-1"><span className="material-icons text-[14px]">podcasts</span>Stable</span>} />
+				</div>
+				<div className="w-full h-full">
+					<StatusCard label="Complaints" value={<span className="text-amber-600">{dashboard.pendingComplaints} open</span>} />
+				</div>
+				<div className="w-full h-full">
+					<StatusCard label="Revenue" value={`USh ${dashboard.monthlyRevenue.toLocaleString()}`} />
+				</div>
 			</div>
 		</div>
 	);
