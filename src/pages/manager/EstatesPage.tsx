@@ -205,7 +205,7 @@ export default function EstatesPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden">
       {/* Creative SVG Blobs */}
       {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -232,7 +232,7 @@ export default function EstatesPage() {
           <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
         </svg>
       </div> */}
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-none mx-auto relative z-10">
         {/* Header */}
         <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl mb-8 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -457,15 +457,16 @@ export default function EstatesPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-white/60 text-[11px] uppercase tracking-wide text-gray-500">
+                <thead className="sticky top-0 z-10 bg-white/70 backdrop-blur text-[10px] uppercase tracking-wide text-gray-600">
                   <tr>
                     <Th></Th>
+                    <Th>Preview</Th>
                     <Th>Name</Th>
                     <Th>Address</Th>
                     <Th>Size</Th>
                     <Th>Blocks</Th>
                     <Th>Apts</Th>
-                    <Th>Avail</Th> {/* re-enabled */}
+                    <Th>Avail</Th>
                     <Th>Actions</Th>
                   </tr>
                 </thead>
@@ -488,28 +489,39 @@ export default function EstatesPage() {
                             </button>
                           </Td>
                           <Td>
-                            <div className="font-semibold text-gray-800 flex items-center gap-2">
+                            <EstatePreview estate={estate} />
+                          </Td>
+                          <Td>
+                            <div className="font-semibold text-gray-800 flex items-center gap-2 max-w-[260px] truncate">
                               <span className="material-icons text-[16px] text-blue-600">business</span>
                               {estate.name}
                             </div>
                             {estate.description && (
-                              <div className="text-[10px] text-gray-500 line-clamp-1">
+                              <div className="text-[10px] text-gray-500 line-clamp-1 max-w-[360px]">
                                 {estate.description}
                               </div>
                             )}
                           </Td>
                           <Td>
-                            <span className="text-gray-700">{estate.address || '—'}</span>
+                            <span className="text-gray-700 max-w-[280px] inline-block truncate align-middle">{estate.address || '—'}</span>
                           </Td>
-                          <Td>{estate.size || '—'}</Td>
-                          <Td>{metrics?.blocks ?? '—'}</Td>
-                          <Td>{metrics?.apartments ?? '—'}</Td>
-                          <Td>{metrics?.availableApartments ?? '—'}</Td>
+                          <Td>
+                            <span className="text-gray-700">{estate.size || '—'}</span>
+                          </Td>
+                          <Td>
+                            <div className="text-right tabular-nums text-gray-800">{metrics?.blocks ?? '—'}</div>
+                          </Td>
+                          <Td>
+                            <div className="text-right tabular-nums text-gray-800">{metrics?.apartments ?? '—'}</div>
+                          </Td>
+                          <Td>
+                            <div className="text-right tabular-nums font-semibold text-blue-700">{metrics?.availableApartments ?? '—'}</div>
+                          </Td>
                           <Td>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => openEdit(estate.id)}
-                                className="px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-600 text-[11px] font-medium hover:bg-blue-600/20 flex items-center gap-1"
+                                className="px-2.5 py-1 rounded-lg bg-blue-600/10 text-blue-600 text-[10px] font-medium hover:bg-blue-600/20 flex items-center gap-1"
                               >
                                 <Edit className="w-4 h-4" />
                                 Edit
@@ -517,7 +529,7 @@ export default function EstatesPage() {
                               <button
                                 disabled={deletingId===estate.id}
                                 onClick={()=>handleDeleteEstate(estate.id)}
-                                className="px-3 py-1.5 rounded-lg bg-rose-600/10 text-rose-600 text-[11px] font-medium hover:bg-rose-600/20 flex items-center gap-1 disabled:opacity-50"
+                                className="px-2.5 py-1 rounded-lg bg-rose-600/10 text-rose-600 text-[10px] font-medium hover:bg-rose-600/20 flex items-center gap-1 disabled:opacity-50"
                               >
                                 <Trash2 className="w-4 h-4" />
                                 {deletingId===estate.id?'Deleting':'Delete'}
@@ -527,7 +539,7 @@ export default function EstatesPage() {
                         </tr>
                         {expanded && (
                           <tr className="bg-white/70">
-                            <td colSpan={8} className="px-8 pb-8 pt-4">
+                            <td colSpan={9} className="px-8 pb-8 pt-4">
                               <div className="space-y-6">
                                 {/* Description */}
                                 <div className="p-4 rounded-2xl bg-white/60 backdrop-blur border border-white/30 text-sm text-gray-700 leading-relaxed">
@@ -1322,7 +1334,7 @@ function Button({ children, type='button', variant='primary', icon, loading, onC
     </button>
   );
 }
-function Th({ children }:{children:React.ReactNode}) {
+function Th({ children }:{children?:React.ReactNode}) {
   return <th className="px-4 py-3 text-left font-semibold">{children}</th>;
 }
 function Td({ children }:{children:React.ReactNode}) {
@@ -1334,6 +1346,11 @@ function ApartmentPreview({ apt }:{apt:any}) {
   const rooms = Math.max(1, Number(apt.number_of_rooms) || 1);
   const color = apt.color || '#60a5fa';
   const rent = apt.rent_amount ? String(apt.rent_amount) : '—';
+  const imgUrl = (
+    apt.image_url ||
+    apt.image ||
+    '/bg-2.jpg'
+  );
   const roomRects = Array.from({ length: rooms }).map((_, i) => {
     // arrange rectangles in a simple grid
     const cols = rooms > 3 ? 3 : rooms;
@@ -1349,30 +1366,33 @@ function ApartmentPreview({ apt }:{apt:any}) {
   return (
     <div className="w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-white/10 to-white/5 border border-white/20 group relative">
       <div className="w-full h-full relative">
-        <svg viewBox="0 0 36 24" className="w-full h-full block">
-          <defs>
-            <linearGradient id={`g-${apt.id}`} x1="0" x2="1">
-              <stop offset="0" stopColor={color} stopOpacity="0.18" />
-              <stop offset="1" stopColor="#ffffff" stopOpacity="0.06" />
-            </linearGradient>
-          </defs>
-          <rect x="1" y="1" width="34" height="22" rx="2" fill={`url(#g-${apt.id})`} stroke="rgba(0,0,0,0.04)" />
-          {roomRects.map((r, idx) => (
-            <rect
-              key={idx}
-              x={r.x}
-              y={r.y}
-              width={r.w}
-              height={r.h}
-              rx="0.6"
-              fill={idx % 2 === 0 ? color : '#ffffff'}
-              fillOpacity={idx % 2 === 0 ? 0.12 : 0.06}
-              stroke="rgba(0,0,0,0.03)"
-            />
-          ))}
-          {/* unit label */}
-          <text x="4" y="18" fontSize="2.2" fill="#374151" opacity="0.8">{apt.number || 'Unit'}</text>
-        </svg>
+        {imgUrl ? (
+          <img src={imgUrl} alt={apt.number || 'Apartment'} className="w-full h-full object-cover block" />
+        ) : (
+          <svg viewBox="0 0 36 24" className="w-full h-full block">
+            <defs>
+              <linearGradient id={`g-${apt.id}`} x1="0" x2="1">
+                <stop offset="0" stopColor={color} stopOpacity="0.18" />
+                <stop offset="1" stopColor="#ffffff" stopOpacity="0.06" />
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" width="34" height="22" rx="2" fill={`url(#g-${apt.id})`} stroke="rgba(0,0,0,0.04)" />
+            {roomRects.map((r, idx) => (
+              <rect
+                key={idx}
+                x={r.x}
+                y={r.y}
+                width={r.w}
+                height={r.h}
+                rx="0.6"
+                fill={idx % 2 === 0 ? color : '#ffffff'}
+                fillOpacity={idx % 2 === 0 ? 0.12 : 0.06}
+                stroke="rgba(0,0,0,0.03)"
+              />
+            ))}
+            <text x="4" y="18" fontSize="2.2" fill="#374151" opacity="0.8">{apt.number || 'Unit'}</text>
+          </svg>
+        )}
 
         {/* hover overlay */}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-[11px] text-white">
@@ -1390,6 +1410,29 @@ function ApartmentPreview({ apt }:{apt:any}) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Thumbnail preview for estates: uses `estate.image_url` if present, else fallback avatar
+function EstatePreview({ estate }:{estate:any}) {
+  const url = estate.image_url || estate.image || '/bg-1.jpg';
+  const initials = String(estate.name || '?')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s:string)=>s[0]?.toUpperCase())
+    .join('');
+  return (
+    <div className="w-24 h-16 rounded-xl overflow-hidden bg-white/60 border border-white/30 flex items-center justify-center">
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={url} alt={estate.name} className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 font-semibold">
+          {initials || 'ES'}
+        </div>
+      )}
     </div>
   );
 }

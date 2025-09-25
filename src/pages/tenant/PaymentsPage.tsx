@@ -233,7 +233,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Payments List */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow">
+      <div className="backdrop-blur-xl bg-white/70 rounded-xl border border-gray-200 shadow">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
             <Receipt className="w-6 h-6 text-blue-600" />
@@ -354,7 +354,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Payment Form */}
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="backdrop-blur-xl bg-white/70 rounded-xl border border-gray-200">
         <div className="px-4 md:px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg md:text-xl font-semibold text-gray-900 flex items-center gap-2">
             <ArrowUpRight className="w-5 h-5 text-blue-600" />
@@ -512,7 +512,7 @@ export default function PaymentsPage() {
   );
 
   return (
-    <div className="min-h-screen  relative overflow-hidden">
+    <main className="flex-1 p-4 lg:p-6 xl:p-8 space-y-4 xl:space-y-6 mx-auto w-full max-w-none relative z-10">
       {/* Creative SVG Blobs */}
       {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -539,85 +539,83 @@ export default function PaymentsPage() {
           <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
         </svg>
       </div> */}
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="space-y-8 pb-24 w-full" style={{ marginTop: '80px' }}>
-          {/* Enhanced Header */}
-          <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
-            <div className="absolute -top-14 -left-14 w-72 h-72 bg-gradient-to-br from-indigo-500/10 to-blue-600/10 rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -right-16 w-96 h-96 bg-gradient-to-br from-blue-400/10 via-indigo-500/10 to-purple-600/10 rounded-full blur-3xl" />
-            <div className="relative flex flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl flex items-center justify-center">
-                  <CreditCard className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">
-                    Payments Overview
-                  </h1>
-                  <p className="text-gray-600 text-sm mt-1">
-                    Your payment history and management
-                  </p>
-                </div>
+      <div className="space-y-4 xl:space-y-6 pb-24 w-full">
+        {/* Enhanced Header */}
+        <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
+          <div className="absolute -top-14 -left-14 w-72 h-72 bg-gradient-to-br from-indigo-500/10 to-blue-600/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-20 -right-16 w-96 h-96 bg-gradient-to-br from-blue-400/10 via-indigo-500/10 to-purple-600/10 rounded-full blur-3xl" />
+          <div className="relative flex flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-xl flex items-center justify-center">
+                <CreditCard className="w-8 h-8 text-white" />
               </div>
-              <div className="flex gap-3">
-                {activeTab !== 'log-payment' && (
-                  <button
-                    onClick={()=>setActiveTab('log-payment')}
-                    className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow hover:shadow-lg transition flex items-center gap-2 text-sm font-medium"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Log Payment
-                  </button>
-                )}
+              <div>
+                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-800 bg-clip-text text-transparent">
+                  Payments Overview
+                </h1>
+                <p className="text-gray-600 text-sm mt-1">
+                  Your payment history and management
+                </p>
               </div>
             </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="bg-white rounded-xl border border-gray-200">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-6 px-6">
+            <div className="flex gap-3">
+              {activeTab !== 'log-payment' && (
                 <button
-                  onClick={() => setActiveTab('receipts')}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'receipts'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  onClick={()=>setActiveTab('log-payment')}
+                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow hover:shadow-lg transition flex items-center gap-2 text-sm font-medium"
                 >
-                  <CreditCard className="w-5 h-5 inline-block mr-1" />
-                  History
-                </button>
-                <button
-                  onClick={() => setActiveTab('log-payment')}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'log-payment'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Plus className="w-5 h-5 inline-block mr-1" />
+                  <Plus className="w-5 h-5" />
                   Log Payment
                 </button>
-              </nav>
-            </div>
-            <div className="p-6">
-              {activeTab === 'receipts' ? renderReceiptsTab() : renderLogPaymentTab()}
+              )}
             </div>
           </div>
-
-          {/* Mobile FAB */}
-          {activeTab === 'receipts' && (
-            <button
-              onClick={()=>setActiveTab('log-payment')}
-              className="fixed bottom-5 right-5 p-4 rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center"
-              aria-label="Log Payment"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
-          )}
         </div>
+
+        {/* Tabs */}
+        <div className="backdrop-blur-xl bg-white/70 rounded-xl border border-gray-200">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-6 px-6 ">
+              <button
+                onClick={() => setActiveTab('receipts')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm m-4 ${
+                  activeTab === 'receipts'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <CreditCard className="w-5 h-5 inline-block mr-1" />
+                History
+              </button>
+              <button
+                onClick={() => setActiveTab('log-payment')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm m-4 ${
+                  activeTab === 'log-payment'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Plus className="w-5 h-5 inline-block mr-1" />
+                Log Payment
+              </button>
+            </nav>
+          </div>
+          <div className="p-6">
+            {activeTab === 'receipts' ? renderReceiptsTab() : renderLogPaymentTab()}
+          </div>
+        </div>
+
+        {/* Mobile FAB */}
+        {activeTab === 'receipts' && (
+          <button
+            onClick={()=>setActiveTab('log-payment')}
+            className="fixed bottom-5 right-5 p-4 rounded-full shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center"
+            aria-label="Log Payment"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        )}
       </div>
-    </div>
+    </main>
   );
 }

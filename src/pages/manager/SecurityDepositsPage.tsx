@@ -118,18 +118,40 @@ export default function SecurityDepositsPageManager() {
 
   const enhance = (p: any) => p; // Placeholder
 
+  const statusNameOf = (d:any) => (depositStatuses.find(s=>s.id===d.status)?.name||'').toLowerCase();
   const displayedDeposits = useMemo(() => {
-    const base = activeTab === 'pending' ? pendingDeposits.filter(d => d.payment_type === 'Security Deposit') : // NEW: Filter for Security Deposit
-                 activeTab === 'overdue' ? overdueDeposits.filter(d => d.payment_type === 'Security Deposit') : // NEW: Filter for Security Deposit
-                 allDeposits;
-    return base.map(enhance);
-  }, [activeTab, pendingDeposits, overdueDeposits, allDeposits]);
+    let base = activeTab === 'pending' ? pendingDeposits : activeTab === 'overdue' ? overdueDeposits : allDeposits;
+    // Fallback when tab endpoints don't filter by type or return empty
+    if (activeTab !== 'all') {
+      if (base.length === 0) {
+        base = allDeposits.filter(d => activeTab==='pending' ? statusNameOf(d)==='pending' : statusNameOf(d)==='overdue');
+      }
+    }
+    // Always enforce Security Deposit type
+    base = base.filter(d => (d.payment_type||'').toLowerCase() === 'security deposit');
+    return base
+      .map(enhance)
+      .filter(d => (filterTenant ? d.tenant === filterTenant : true))
+      .filter(d => (filterMonth ? d.payment_for_month === filterMonth : true))
+      .filter(d => (filterYear ? d.payment_for_year === filterYear : true))
+      .filter(d => (filterStatus ? d.status === filterStatus : true));
+  }, [activeTab, pendingDeposits, overdueDeposits, allDeposits, depositStatuses, filterTenant, filterMonth, filterYear, filterStatus]);
 
   // Derived metrics
-  const totalDeposits = allDeposits.length; // Already filtered in API query
-  const pendingDepositsCount = pendingDeposits.filter(d => d.payment_type === 'Security Deposit').length;
-  const overdueDepositsCount = overdueDeposits.filter(d => d.payment_type === 'Security Deposit').length;
-  const refundedDeposits = allDeposits.filter(d => d.refund_status?.toLowerCase() === 'refunded').length;
+  const filteredAll = useMemo(() => (
+    allDeposits
+      .filter(d => (d.payment_type||'').toLowerCase() === 'security deposit')
+      .map(enhance)
+      .filter(d => (filterTenant ? d.tenant === filterTenant : true))
+      .filter(d => (filterMonth ? d.payment_for_month === filterMonth : true))
+      .filter(d => (filterYear ? d.payment_for_year === filterYear : true))
+      .filter(d => (filterStatus ? d.status === filterStatus : true))
+  ), [allDeposits, filterTenant, filterMonth, filterYear, filterStatus]);
+
+  const totalDeposits = filteredAll.length;
+  const pendingDepositsCount = filteredAll.filter(d => statusNameOf(d)==='pending').length;
+  const overdueDepositsCount = filteredAll.filter(d => statusNameOf(d)==='overdue').length;
+  const refundedDeposits = filteredAll.filter(d => (d.refund_status||'').toLowerCase() === 'refunded').length;
 
   // Helper function to get status name from ID
   const getStatusName = (statusId: number) => {
@@ -174,7 +196,7 @@ export default function SecurityDepositsPageManager() {
   const getTenantObj = (d:any) => tenants.find(t=>t.id===d.tenant);
 
   return (
-    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden">
       {/* Creative SVG Blobs */}
       {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -201,7 +223,7 @@ export default function SecurityDepositsPageManager() {
           <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
         </svg>
       </div> */}
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-none mx-auto relative z-10">
         {/* Header - UPDATED for wrap */}
         <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden mb-10">
           <div className="absolute -top-10 -right-10 w-56 h-56 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
@@ -234,9 +256,9 @@ export default function SecurityDepositsPageManager() {
         {/* Filters - UPDATED stacking */}
         <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl p-6 space-y-5 mb-10">
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 items-end">
-            <SelectField label="Tenant" value={filterTenant} onChange={v=>setFilterTenant(v as number | '')} options={[{value:'', label:'All Tenants'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username || 'Tenant'}))]} />
-            <SelectField label="Status" value={filterStatus} onChange={v=>setFilterStatus(v as number | '')} options={[{value:'', label:'All Status'}, ...depositStatuses.map(s=>({ value: s.id, label: s.name }))]} />
-            <SelectField label="Month" value={filterMonth} onChange={v=>setFilterMonth(v as number | '')} options={[{value:'', label:'All Months'}, ...months.map(m=>({ value: m.value, label: m.name }))]} />
+            <SelectField label="Tenant" value={filterTenant} onChange={v=>setFilterTenant(v===''? '' : Number(v))} options={[{value:'', label:'All Tenants'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username || 'Tenant'}))]} />
+            <SelectField label="Status" value={filterStatus} onChange={v=>setFilterStatus(v===''? '' : Number(v))} options={[{value:'', label:'All Status'}, ...depositStatuses.map(s=>({ value: s.id, label: s.name }))]} />
+            <SelectField label="Month" value={filterMonth} onChange={v=>setFilterMonth(v===''? '' : Number(v))} options={[{value:'', label:'All Months'}, ...months.map(m=>({ value: m.value, label: m.name }))]} />
             <SelectField label="Year" value={filterYear} onChange={v=>setFilterYear(Number(v))} options={[{value: filterYear, label: String(filterYear)}, {value: filterYear-1, label: String(filterYear-1)}, {value: filterYear+1, label: String(filterYear+1)}]} />
           </div>
           <div className="flex gap-3 text-xs font-medium overflow-x-auto">
@@ -321,8 +343,8 @@ export default function SecurityDepositsPageManager() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-white/60">
-                  <tr className="text-[11px] uppercase tracking-wide text-gray-500">
+                <thead className="sticky top-0 z-10 bg-white/70 backdrop-blur">
+                  <tr className="text-[10px] uppercase tracking-wide text-gray-600">
                     <Th>Tenant</Th><Th>Amount</Th><Th>Refund Status</Th><Th>Due</Th><Th>Status</Th><Th>Method</Th><Th>Actions</Th>
                   </tr>
                 </thead>

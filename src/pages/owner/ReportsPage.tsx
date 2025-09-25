@@ -482,7 +482,7 @@ export default function ReportsPage() {
   );
 
   return (
-    <div className="min-h-screen  p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+    <main className="flex-1 p-4 lg:p-6 xl:p-8 space-y-4 xl:space-y-6 mx-auto w-full max-w-none relative z-10">
       {/* Creative SVG Blobs */}
       {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -509,101 +509,99 @@ export default function ReportsPage() {
           <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
         </svg>
       </div> */}
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="space-y-8 mx-auto pb-24">
-          {/* Enhanced Header */}
-          <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
-            <div className="absolute -top-14 -right-14 w-72 h-72 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
-            <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
-                  <BarChart3 className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                    Reports & Analytics
-                  </h1>
-                  <p className="text-gray-600 text-sm lg:text-base">
-                    Comprehensive property management reports
-                  </p>
-                </div>
+      <div className="space-y-4 xl:space-y-6">
+        {/* Enhanced Header */}
+        <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
+          <div className="absolute -top-14 -right-14 w-72 h-72 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                <BarChart3 className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                  Reports & Analytics
+                </h1>
+                <p className="text-gray-600 text-sm lg:text-base">
+                  Comprehensive property management reports
+                </p>
               </div>
             </div>
-          </div>
-
-          {/* Report Controls */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
-            <div className="flex gap-6 items-end">
-              {/* Report Type Selection */}
-              <div className="w-auto">
-                <label className="block text-xs font-medium text-gray-700 mb-2">Report Type</label>
-                <div className="flex gap-2">
-                  {reportTypes.map(type => (
-                    <button
-                      key={type.id}
-                      onClick={() => setReportType(type.id as any)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap ${
-                        reportType === type.id
-                          ? 'bg-blue-600 text-white shadow'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {type.icon}
-                      <span>{type.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Date Range Selection */}
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={dateRange.start_date}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                />
-                <span className="flex items-center justify-center text-gray-500 text-sm">to</span>
-                <input
-                  type="date"
-                  value={dateRange.end_date}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                />
-              </div>
-
-              {/* Export Button */}
-              <div className="ml-auto">
-                <button className="px-4 py-2 bg-green-600 text-black rounded-lg hover:bg-green-700 text-sm flex items-center gap-2">
-                  <Download className="w-4 h-4" />
-                  Export
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Report Content */}
-          <div>
-            {isLoading() ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12">
-                <div className="text-center">
-                  <div className="text-2xl mb-2 flex justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                  </div>
-                  <p className="text-gray-600">Loading report data...</p>
-                </div>
-              </div>
-            ) : (
-              <div className="px-1">
-                {reportType === 'payments' && renderPaymentReport()}
-                {reportType === 'occupancy' && renderOccupancyReport()}
-                {reportType === 'complaints' && renderComplaintReport()}
-                {reportType === 'tenancy' && renderTenancyReport()}
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Report Controls */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+          <div className="flex gap-6 items-end">
+            {/* Report Type Selection */}
+            <div className="w-auto">
+              <label className="block text-xs font-medium text-gray-700 mb-2">Report Type</label>
+              <div className="flex gap-2">
+                {reportTypes.map(type => (
+                  <button
+                    key={type.id}
+                    onClick={() => setReportType(type.id as any)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap ${
+                      reportType === type.id
+                        ? 'bg-blue-600 text-white shadow'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {type.icon}
+                    <span>{type.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Date Range Selection */}
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={dateRange.start_date}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+              <span className="flex items-center justify-center text-gray-500 text-sm">to</span>
+              <input
+                type="date"
+                value={dateRange.end_date}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+
+            {/* Export Button */}
+            <div className="ml-auto">
+              <button className="px-4 py-2 bg-green-600 text-black rounded-lg hover:bg-green-700 text-sm flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Report Content */}
+        <div>
+          {isLoading() ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-12">
+              <div className="text-center">
+                <div className="text-2xl mb-2 flex justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                </div>
+                <p className="text-gray-600">Loading report data...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="px-1">
+              {reportType === 'payments' && renderPaymentReport()}
+              {reportType === 'occupancy' && renderOccupancyReport()}
+              {reportType === 'complaints' && renderComplaintReport()}
+              {reportType === 'tenancy' && renderTenancyReport()}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

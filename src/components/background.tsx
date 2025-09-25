@@ -1,155 +1,83 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-type CanvasStrokeStyle = string | CanvasGradient | CanvasPattern;
-
-interface GridOffset {
-  x: number;
-  y: number;
-}
-
-interface SquaresProps {
-  direction?: 'diagonal' | 'up' | 'right' | 'down' | 'left';
-  speed?: number;
-  borderColor?: CanvasStrokeStyle;
-  squareSize?: number;
-  hoverFillColor?: CanvasStrokeStyle;
-}
-
-const Squares: React.FC<SquaresProps> = ({
-  direction = 'right',
-  speed = 1,
-  borderColor = '#999',
-  squareSize = 40,
-  hoverFillColor = '#fff'
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const requestRef = useRef<number | null>(null);
-  const numSquaresX = useRef<number>(0);
-  const numSquaresY = useRef<number>(0);
-  const gridOffset = useRef<GridOffset>({ x: 0, y: 0 });
-  const hoveredSquareRef = useRef<GridOffset | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    const resizeCanvas = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-      numSquaresX.current = Math.ceil(canvas.width / squareSize) + 1;
-      numSquaresY.current = Math.ceil(canvas.height / squareSize) + 1;
-    };
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    const drawGrid = () => {
-      if (!ctx) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const startX = Math.floor(gridOffset.current.x / squareSize) * squareSize;
-      const startY = Math.floor(gridOffset.current.y / squareSize) * squareSize;
-
-      for (let x = startX; x < canvas.width + squareSize; x += squareSize) {
-        for (let y = startY; y < canvas.height + squareSize; y += squareSize) {
-          const squareX = x - (gridOffset.current.x % squareSize);
-          const squareY = y - (gridOffset.current.y % squareSize);
-
-          if (
-            hoveredSquareRef.current &&
-            Math.floor((x - startX) / squareSize) === hoveredSquareRef.current.x &&
-            Math.floor((y - startY) / squareSize) === hoveredSquareRef.current.y
-          ) {
-            ctx.fillStyle = hoverFillColor;
-            ctx.fillRect(squareX, squareY, squareSize, squareSize);
-          }
-
-          ctx.strokeStyle = borderColor;
-          ctx.strokeRect(squareX, squareY, squareSize, squareSize);
-        }
-      }
-
-      const gradient = ctx.createRadialGradient(
-        canvas.width / 2,
-        canvas.height / 2,
-        0,
-        canvas.width / 2,
-        canvas.height / 2,
-        Math.sqrt(canvas.width ** 2 + canvas.height ** 2) / 2
-      );
-      gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      gradient.addColorStop(1, '#fff');
-
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    };
-
-    const updateAnimation = () => {
-      const effectiveSpeed = Math.max(speed, 0.1);
-      switch (direction) {
-        case 'right':
-          gridOffset.current.x = (gridOffset.current.x - effectiveSpeed + squareSize) % squareSize;
-          break;
-        case 'left':
-          gridOffset.current.x = (gridOffset.current.x + effectiveSpeed + squareSize) % squareSize;
-          break;
-        case 'up':
-          gridOffset.current.y = (gridOffset.current.y + effectiveSpeed + squareSize) % squareSize;
-          break;
-        case 'down':
-          gridOffset.current.y = (gridOffset.current.y - effectiveSpeed + squareSize) % squareSize;
-          break;
-        case 'diagonal':
-          gridOffset.current.x = (gridOffset.current.x - effectiveSpeed + squareSize) % squareSize;
-          gridOffset.current.y = (gridOffset.current.y - effectiveSpeed + squareSize) % squareSize;
-          break;
-        default:
-          break;
-      }
-
-      drawGrid();
-      requestRef.current = requestAnimationFrame(updateAnimation);
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = event.clientX - rect.left;
-      const mouseY = event.clientY - rect.top;
-
-      const startX = Math.floor(gridOffset.current.x / squareSize) * squareSize;
-      const startY = Math.floor(gridOffset.current.y / squareSize) * squareSize;
-
-      const hoveredSquareX = Math.floor((mouseX + gridOffset.current.x - startX) / squareSize);
-      const hoveredSquareY = Math.floor((mouseY + gridOffset.current.y - startY) / squareSize);
-
-      if (
-        !hoveredSquareRef.current ||
-        hoveredSquareRef.current.x !== hoveredSquareX ||
-        hoveredSquareRef.current.y !== hoveredSquareY
-      ) {
-        hoveredSquareRef.current = { x: hoveredSquareX, y: hoveredSquareY };
-      }
-    };
-
-    const handleMouseLeave = () => {
-      hoveredSquareRef.current = null;
-    };
-
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
-    requestRef.current = requestAnimationFrame(updateAnimation);
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, [direction, speed, borderColor, hoverFillColor, squareSize]);
-
-  return <canvas ref={canvasRef} className="w-full h-full border-none block"></canvas>;
+type CarouselProps = {
+  images: string[];
+  autoplay?: boolean;
+  intervalMs?: number;
+  fadeMs?: number;
+  pauseOnHover?: boolean;
 };
 
-export default Squares;
+const BackgroundCarousel: React.FC<CarouselProps> = ({
+  images,
+  autoplay = true,
+  intervalMs = 6000,
+  fadeMs = 900,
+  pauseOnHover = true,
+}) => {
+  const safeImages = Array.isArray(images) ? images : [];
+  const hasMultiple = safeImages.length > 1;
+
+  const [baseIndex, setBaseIndex] = useState(0);
+  const [overlayIndex, setOverlayIndex] = useState(hasMultiple ? 1 : 0);
+  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  const advance = () => {
+    if (!hasMultiple) return;
+    const next = (baseIndex + 1) % safeImages.length;
+    setOverlayIndex(next);
+    setOverlayVisible(true);
+    window.setTimeout(() => {
+      setBaseIndex(next);
+      setOverlayVisible(false);
+    }, fadeMs);
+  };
+
+  useEffect(() => {
+    if (!autoplay || !hasMultiple || paused) return;
+    timerRef.current = window.setInterval(() => {
+      advance();
+    }, intervalMs);
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    };
+  }, [autoplay, hasMultiple, paused, intervalMs, baseIndex]);
+
+  const baseUrl = safeImages[baseIndex] ?? '';
+  const overlayUrl = safeImages[overlayIndex] ?? baseUrl;
+
+  return (
+    <div
+      className="w-full h-full border-none block relative overflow-hidden"
+      aria-roledescription="carousel"
+      aria-label="Background image carousel"
+      onMouseEnter={() => pauseOnHover && setPaused(true)}
+      onMouseLeave={() => pauseOnHover && setPaused(false)}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: baseUrl ? `url(${baseUrl})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 1,
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: overlayUrl ? `url(${overlayUrl})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: overlayVisible ? 1 : 0,
+          transition: `opacity ${fadeMs}ms ease-in-out`,
+        }}
+      />
+    </div>
+  );
+};
+
+export default BackgroundCarousel;

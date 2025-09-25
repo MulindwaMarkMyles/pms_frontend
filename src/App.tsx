@@ -19,7 +19,7 @@ import TenantDashboard from './pages/tenant/TenantDashboard';
 // import HomePage from './pages/public/HomePage';
 import AboutPage from './pages/public/AboutPage';
 import ContactPage from './pages/public/ContactPage';
-import Squares from './components/background';
+import BackgroundCarousel from './components/background';
 // import BG from './components/spline_background';
 
 function App() {
@@ -28,12 +28,16 @@ function App() {
       {/* <NavigationGuard /> - Temporarily disabled to fix redirect issue */}
       <div style={{ position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'all', overflow: 'hidden' }}>
         {/* <BG /> */}
-        <Squares 
-        speed={0.5} 
-        squareSize={40}
-        direction='diagonal' // up, down, left, right, diagonal
-        borderColor='#225CEA'
-        hoverFillColor='#fff'
+        <BackgroundCarousel
+        images={['/bg-1.jpg','/bg-2.jpg','/bg-3.jpg','/bg-4.jpg','/bg-5.jpg']}
+        autoplay
+        intervalMs={6000}
+        fadeMs={1000}
+        // pauseOnHover
+        // showIndicators
+        // showArrows
+        // enableKeyboard
+        // enableSwipe
         />
       </div>
       <Routes>

@@ -22,6 +22,10 @@ export default function TenantsPage() {
     const anyT = t as any;
     const user = anyT.user_details || anyT.user || {};
     const name = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || 'Tenant';
+    const avatarUrl = (
+      user.avatar_url || user.image_url || user.photo || user.avatar || user.profile_picture ||
+      anyT.avatar_url || anyT.image_url || anyT.photo || anyT.avatar || null
+    );
     // lease status + days left
     let rentStatus: 'paid'|'pending'|'overdue' = 'paid';
     let daysLeft: number | null = null;
@@ -39,7 +43,7 @@ export default function TenantsPage() {
     const estateName = estate.name || '';
     const blockName = block.name || '';
     const tenantTypeName = (anyT.tenant_type_details && anyT.tenant_type_details.name) || '';
-    return { ...anyT, rentStatus, name, email: user.email, apartmentLabel, estateName, blockName, tenantTypeName, daysLeft };
+    return { ...anyT, rentStatus, name, email: user.email, apartmentLabel, estateName, blockName, tenantTypeName, daysLeft, avatarUrl };
   };
 
   const computed = tenants.map(decorateTenant);
@@ -132,7 +136,7 @@ export default function TenantsPage() {
   const activeTenant = computed.find(t=>t.id===selectedTenant);
 
   return (
-    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden">
       {/* Creative SVG Blobs */}
       {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -159,7 +163,7 @@ export default function TenantsPage() {
           <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
         </svg>
       </div> */}
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-none mx-auto relative z-10">
         <div className=" mx-auto flex gap-6 xl:gap-8">
           <div className="flex-1 min-w-0">
             <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl mb-8 p-6">
@@ -178,7 +182,7 @@ export default function TenantsPage() {
               </div>
             </div>
 
-              <div className="backdrop-blur-md  bg-white/70 border border-white/20 rounded-2xl shadow-xl mb-8 p-6">
+            <div className="backdrop-blur-md  bg-white/70 border border-white/20 rounded-2xl shadow-xl mb-8 p-6">
               <div className="flex flex-row sm:flex-row sm:items-center gap-4">
                 <div className="flex-1 relative">
                 <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
@@ -199,45 +203,71 @@ export default function TenantsPage() {
             </div>
 
             <div className={`${layout === 'grid'
-              ? 'columns-1 sm:columns-3 xl:columns-3 gap-6 space-y-6'
+              ? 'columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6'
               : 'space-y-4'} relative`}>
               {filteredTenants.map((tenant) => {
                 const selected = selectedTenant === tenant.id;
                 const rentStatus = tenant.rentStatus;
+                const leaseStart = tenant.lease_start ? new Date(tenant.lease_start).getTime() : null;
+                const leaseEnd = tenant.lease_end ? new Date(tenant.lease_end).getTime() : null;
+                const today = Date.now();
+                const progress = leaseStart && leaseEnd && leaseEnd > leaseStart
+                  ? Math.min(100, Math.max(0, Math.round(((today - leaseStart) / (leaseEnd - leaseStart)) * 100)))
+                  : null;
                 return (
-                  <div key={tenant.id} onClick={()=>openTenant(tenant.id)} className={`group cursor-pointer break-inside-avoid rounded-3xl backdrop-blur-md bg-white/70 border border-white/20 shadow-xl transition-all duration-500 overflow-hidden ${selected ? 'ring-2 ring-indigo-400/40 scale-[1.015]' : 'hover:shadow-2xl hover:scale-[1.01]'}`}>                  
-                    <div className="relative p-6 space-y-5">
-                      <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1 shadow-sm bg-white/60 backdrop-blur ${getStatusColor(rentStatus)}`}>
-                        <span className="material-icons text-[14px]">{getStatusIcon(rentStatus)}</span>{rentStatus}
+                  <div key={tenant.id} onClick={()=>openTenant(tenant.id)} className={`group cursor-pointer break-inside-avoid rounded-3xl backdrop-blur-md bg-white/70 border border-white/20 shadow-xl transition-all duration-500 overflow-hidden ${selected ? 'ring-2 ring-indigo-400/40 scale-[1.015]' : 'hover:shadow-2xl hover:scale-[1.01]'}`}>
+                    <div className="relative">
+                      <div className={`absolute inset-x-0 top-0 h-1.5 ${rentStatus==='paid' ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : rentStatus==='pending' ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-rose-400 to-rose-500'}`} />
+                    </div>
+                    <div className="relative p-6 pt-7 space-y-5">
+                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1 shadow-sm bg-white/70 backdrop-blur">
+                        <span className={`material-icons text-[14px] ${rentStatus==='paid' ? 'text-emerald-600' : rentStatus==='pending' ? 'text-amber-600' : 'text-rose-600'}`}>{getStatusIcon(rentStatus)}</span>
+                        <span className="capitalize text-gray-700">{rentStatus}</span>
                       </div>
                       {/* Header */}
                       <div className="flex items-center gap-4">
                         <div className="relative">
-                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">{initials(tenant.name)}</div>
+                          {tenant.avatarUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={tenant.avatarUrl} alt={tenant.name} className="w-16 h-16 rounded-2xl object-cover shadow-lg ring-2 ring-white" />
+                          ) : (
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-white">{initials(tenant.name)}</div>
+                          )}
                           <span className="absolute -bottom-1 -right-1 p-1 rounded-xl bg-white shadow border border-white/40"><span className="material-icons text-[16px] text-indigo-500">badge</span></span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="text-lg font-bold text-gray-900 truncate flex items-center gap-2">{tenant.name}</h3>
                           <p className="text-xs text-gray-500 flex items-center gap-1"><span className="material-icons text-[14px]">mail</span>{tenant.email || '—'}</p>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {tenant.estateName && <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px]">{tenant.estateName}</span>}
+                            {tenant.blockName && <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[10px]">{tenant.blockName}</span>}
+                            {tenant.apartmentLabel && <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px]">{tenant.apartmentLabel}</span>}
+                          </div>
                         </div>
                       </div>
+                      {/* Lease progress */}
+                      {progress !== null && (
+                        <div>
+                          <div className="flex items-center justify-between text-[10px] text-gray-500 mb-1">
+                            <span>Lease Progress</span>
+                            <span className="font-medium text-gray-700">{progress}%</span>
+                          </div>
+                          <div className="h-2 w-full bg-gray-200/70 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${rentStatus==='paid' ? 'bg-emerald-500' : rentStatus==='pending' ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${progress}%` }} />
+                          </div>
+                        </div>
+                      )}
                       {/* At-a-glance info */}
                       <div className="grid grid-cols-2 gap-4 text-[11px]">
-                        <Info icon="domain" label="Apartment" value={tenant.apartmentLabel || tenant.apartment || '—'} />
-                        <Info icon="apartment" label="Block" value={tenant.blockName || '—'} />
-                        <Info icon="villa" label="Estate" value={tenant.estateName || '—'} />
-                        <Info icon="badge" label="Type" value={tenant.tenantTypeName || '—'} />
                         <Info icon="event" label="Start" value={tenant.lease_start ? new Date(tenant.lease_start).toLocaleDateString() : '—'} />
                         <Info icon="event_available" label="End" value={tenant.lease_end ? new Date(tenant.lease_end).toLocaleDateString() : '—'} />
                         <Info icon="schedule" label="Days Left" value={tenant.daysLeft!=null ? (tenant.daysLeft < 0 ? `${Math.abs(tenant.daysLeft)} overdue` : tenant.daysLeft) : '—'} />
                         <Info icon="call" label="Phone" value={tenant.phone_number || '—'} />
-                        <Info icon="contact_phone" label="Emergency" value={tenant.emergency_contact || '—'} />
                       </div>
                       {/* Actions */}
                       <div className="flex gap-2 pt-1">
                         <button onClick={(e)=> { e.stopPropagation(); openEdit(tenant.id); }} className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-xs font-medium"><span className="material-icons text-sm">edit</span>Edit</button>
-                        {/* <button onClick={(e)=> { e.stopPropagation(); openEdit(tenant.id); }} className="px-4 py-2 border border-indigo-200 text-indigo-600 rounded-xl hover:bg-indigo-50 transition-colors"><span className="material-icons text-sm">edit</span></button>
-                        <button className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"><span className="material-icons text-sm">more_vert</span></button> */}
+                        {/* <button onClick={(e)=> { e.stopPropagation(); }} className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"><span className="material-icons text-sm">more_vert</span></button> */}
                       </div>
                     </div>
                   </div>

@@ -90,7 +90,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden  text-white" style={{ backgroundImage: 'url(/login_bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden  text-white" >
       {/* Decorative gradients */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-32 -left-24 w-[480px] h-[480px] bg-indigo-500/30 rounded-full blur-3xl animate-pulse" />

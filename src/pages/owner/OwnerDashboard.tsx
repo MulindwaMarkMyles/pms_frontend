@@ -110,7 +110,7 @@ export default function OwnerDashboard() {
     activePage === 'reports'
       ? <ReportsPage />
       : (
-        <div className="space-y-10">
+        <div className="space-y-4 xl:space-y-6">
           {/* Top Cluster */}
           <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
             <div className="absolute -top-14 -right-14 w-72 h-72 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
@@ -149,8 +149,8 @@ export default function OwnerDashboard() {
           </div>
 
           {/* Secondary Layout */}
-          <div className="grid grid-cols-12 gap-8 items-start">
-            <div className="col-span-8 space-y-8">
+          <div className="grid grid-cols-12 gap-4 items-start">
+            <div className="col-span-8 space-y-4 xl:space-y-6">
               {/* Occupancy Section */}
               <SectionCard title="Occupancy Overview" icon="insights" actions={
                 <div className="flex items-center gap-2 text-[11px] text-gray-500"><span className="material-icons text-[14px]">update</span>{now}</div>
@@ -240,7 +240,7 @@ export default function OwnerDashboard() {
               </SectionCard>
             </div>
 
-            <div className="col-span-4 space-y-8">
+            <div className="col-span-4 space-y-4 xl:space-y-6">
               {/* Alerts */}
               <SectionCard title="Payment Alerts" icon="notification_important" actions={<span className="text-[10px] text-gray-500">Auto-refresh 5m</span>}>
                 {!paymentAlerts ? <LoadingPlaceholder /> : (
@@ -321,7 +321,7 @@ export default function OwnerDashboard() {
         onChange={(p)=>setActivePage(p)}
       />
       <div className="flex-1 flex flex-col">
-        <main className="px-6 lg:px-10 py-10 max-w-[1400px] mx-auto w-full">
+        <main className="p-4 lg:p-6 xl:p-8 space-y-4 xl:space-y-6 mx-auto w-full max-w-none relative z-10">
           {renderPage()}
         </main>
       </div>

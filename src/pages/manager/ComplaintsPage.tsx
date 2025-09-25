@@ -44,11 +44,11 @@ export default function ComplaintsPage() {
   const selected:any = (complaints as any[]).find(c=>c.id===selectedId);
 
   const counts = {
-    total: (complaints as any[]).length,
-    open: (complaints as any[]).filter(c=> (statusMap[c.status]||'').toLowerCase()==='open').length,
-    progress: (complaints as any[]).filter(c=> (statusMap[c.status]||'').toLowerCase()==='in progress').length,
-    resolved: (complaints as any[]).filter(c=> (statusMap[c.status]||'').toLowerCase()==='resolved').length,
-    closed: (complaints as any[]).filter(c=> (statusMap[c.status]||'').toLowerCase()==='closed').length
+    total: (filtered as any[]).length,
+    open: (filtered as any[]).filter(c=> (statusMap[c.status]||'').toLowerCase()==='open').length,
+    progress: (filtered as any[]).filter(c=> (statusMap[c.status]||'').toLowerCase()==='in progress').length,
+    resolved: (filtered as any[]).filter(c=> (statusMap[c.status]||'').toLowerCase()==='resolved').length,
+    closed: (filtered as any[]).filter(c=> (statusMap[c.status]||'').toLowerCase()==='closed').length
   };
 
   const statusColor = (name?:string) => {
@@ -67,7 +67,7 @@ export default function ComplaintsPage() {
   const handleClose = async () => { if(!selected) return; try { await closeComplaint(selected.id as number).unwrap(); } catch(e){console.error(e);} };
 
   return (
-    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden">
       {/* Creative SVG Blobs */}
       {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -94,7 +94,7 @@ export default function ComplaintsPage() {
           <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
         </svg>
       </div> */}
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-none mx-auto relative z-10">
         <div className=" mx-auto flex gap-8">
           <div className="flex-1 min-w-0 space-y-8">
             {/* Header */}
@@ -248,8 +248,8 @@ export default function ComplaintsPage() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
-                    <thead className="bg-white/60">
-                      <tr className="text-[11px] uppercase tracking-wide text-gray-500">
+                    <thead className="sticky top-0 z-10 bg-white/70 backdrop-blur">
+                      <tr className="text-[10px] uppercase tracking-wide text-gray-600">
                         <Th>Title</Th>
                         <Th>Tenant</Th>
                         <Th>Category</Th>

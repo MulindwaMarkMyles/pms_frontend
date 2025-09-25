@@ -117,15 +117,60 @@ export default function PaymentsPageManager() {
 
   const enhance = (p: any) => p; // Placeholder (API shape already flat)
 
-  const displayedPayments = useMemo(() => {
-    const base = activeTab === 'pending' ? pendingPayments : activeTab === 'overdue' ? overduePayments : allPayments;
-    return base.map(enhance);
-  }, [activeTab, pendingPayments, overduePayments, allPayments]);
+  const getStatusName = (p:any) => {
+    const id = p.status ?? p.status_id;
+    const s = paymentStatuses.find(x=>x.id===id);
+    const name = s?.name || (typeof p.status === 'string' ? p.status : '');
+    return (name||'').toLowerCase();
+  };
 
-  // Derived metrics
-  const thisMonthRevenue = allPayments
-    .filter(p => p.payment_for_month === (new Date().getMonth() + 1) && p.payment_for_year === new Date().getFullYear() && paymentStatuses.find(s=>s.id===p.status)?.name?.toLowerCase()==='paid')
-    .reduce((sum, p) => sum + Number(p.amount), 0);
+  const displayedPayments = useMemo(() => {
+    let base = activeTab === 'pending' ? pendingPayments : activeTab === 'overdue' ? overduePayments : allPayments;
+    // Fallback: if tab array empty, derive from allPayments by status name
+    if (activeTab !== 'all' && base.length === 0) {
+      base = allPayments.filter(p => {
+        const n = getStatusName(p);
+        return activeTab === 'pending' ? n === 'pending' : n === 'overdue';
+      });
+    }
+
+    const filtered = base
+      .map(enhance)
+      .filter(p => (filterTenant ? p.tenant === filterTenant : true))
+      .filter(p => (filterMonth ? p.payment_for_month === filterMonth : true))
+      .filter(p => (filterYear ? p.payment_for_year === filterYear : true));
+
+    // Only apply explicit status filter on All tab; Pending/Overdue tabs already imply status
+    return activeTab === 'all'
+      ? filtered.filter(p => (filterStatus ? (p.status ?? p.status_id) === filterStatus : true))
+      : filtered;
+  }, [activeTab, pendingPayments, overduePayments, allPayments, filterTenant, filterMonth, filterYear, filterStatus, paymentStatuses]);
+
+  // Derived metrics (filtered)
+  const filteredAll = useMemo(() => (
+    allPayments
+      .map(enhance)
+      .filter(p => (filterTenant ? p.tenant === filterTenant : true))
+      .filter(p => (filterMonth ? p.payment_for_month === filterMonth : true))
+      .filter(p => (filterYear ? p.payment_for_year === filterYear : true))
+      .filter(p => (filterStatus ? p.status === filterStatus : true))
+  ), [allPayments, filterTenant, filterMonth, filterYear, filterStatus]);
+
+  // Note: we now compute pending/overdue counts from filteredAll for consistency
+
+  const thisMonthRevenue = useMemo(() => (
+    filteredAll
+      .filter(p => p.payment_for_month === (new Date().getMonth() + 1) && p.payment_for_year === new Date().getFullYear() && paymentStatuses.find(s=>s.id===p.status)?.name?.toLowerCase()==='paid')
+      .reduce((sum, p) => sum + Number(p.amount), 0)
+  ), [filteredAll, paymentStatuses]);
+
+  const filteredPendingCount = useMemo(() => (
+    filteredAll.filter(p => getStatusName(p) === 'pending').length
+  ), [filteredAll, paymentStatuses]);
+
+  const filteredOverdueCount = useMemo(() => (
+    filteredAll.filter(p => getStatusName(p) === 'overdue').length
+  ), [filteredAll, paymentStatuses]);
 
   // Handlers
   const handleCreatePayment = async (e: React.FormEvent) => {
@@ -167,7 +212,7 @@ export default function PaymentsPageManager() {
   const getTenantObj = (p:any) => tenants.find(t=>t.id===p.tenant);
 
   return (
-    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden" style={{ paddingTop:'100px'}}>
+    <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden">
       {/* Creative SVG Blobs */}
       {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -194,7 +239,7 @@ export default function PaymentsPageManager() {
           <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
         </svg>
       </div> */}
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-none mx-auto relative z-10">
         {/* Header - UPDATED for wrap */}
         <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden mb-10">
           <div className="absolute -top-10 -right-10 w-56 h-56 bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-full blur-3xl" />
@@ -218,18 +263,18 @@ export default function PaymentsPageManager() {
 
         {/* Metrics (minor: add sm:grid-cols-2 for narrow) */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-5 mb-10">
-          <MetricCard label="TOTAL" icon="paid" value={allPayments.length} desc="All records" color="from-blue-500 to-blue-600" />
-          <MetricCard label="PENDING" icon="schedule" value={pendingPayments.length} desc="Awaiting" color="from-amber-500 to-amber-600" />
-          <MetricCard label="OVERDUE" icon="error" value={overduePayments.length} desc="Needs action" color="from-red-500 to-red-600" />
-            <MetricCard label="MONTH REVENUE" icon="trending_up" value={formatCurrency(thisMonthRevenue)} desc="Paid this month" color="from-emerald-500 to-emerald-600" />
+          <MetricCard label="TOTAL" icon="paid" value={filteredAll.length} desc="All records" color="from-blue-500 to-blue-600" />
+          <MetricCard label="PENDING" icon="schedule" value={filteredPendingCount} desc="Awaiting" color="from-amber-500 to-amber-600" />
+          <MetricCard label="OVERDUE" icon="error" value={filteredOverdueCount} desc="Needs action" color="from-red-500 to-red-600" />
+          <MetricCard label="MONTH REVENUE" icon="trending_up" value={formatCurrency(thisMonthRevenue)} desc="Paid this month" color="from-emerald-500 to-emerald-600" />
         </div>
 
         {/* Filters - UPDATED stacking */}
         <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-2xl shadow-xl p-6 space-y-5 mb-10">
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 items-end">
-            <SelectField label="Tenant" value={filterTenant} onChange={v=>setFilterTenant(v as number | '')} options={[{value:'', label:'All Tenants'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username || 'Tenant'}))]} />
-            <SelectField label="Status" value={filterStatus} onChange={v=>setFilterStatus(v as number | '')} options={[{value:'', label:'All Status'}, ...paymentStatuses.map(s=>({ value: s.id, label: s.name }))]} />
-            <SelectField label="Month" value={filterMonth} onChange={v=>setFilterMonth(v as number | '')} options={[{value:'', label:'All Months'}, ...months.map(m=>({ value: m.value, label: m.name }))]} />
+            <SelectField label="Tenant" value={filterTenant} onChange={v=>setFilterTenant(v===''? '' : Number(v))} options={[{value:'', label:'All Tenants'}, ...tenants.map(t=>({ value: t.id, label: `${t.user_details?.first_name||''} ${t.user_details?.last_name||''}`.trim() || t.user_details?.username || 'Tenant'}))]} />
+            <SelectField label="Status" value={filterStatus} onChange={v=>setFilterStatus(v===''? '' : Number(v))} options={[{value:'', label:'All Status'}, ...paymentStatuses.map(s=>({ value: s.id, label: s.name }))]} />
+            <SelectField label="Month" value={filterMonth} onChange={v=>setFilterMonth(v===''? '' : Number(v))} options={[{value:'', label:'All Months'}, ...months.map(m=>({ value: m.value, label: m.name }))]} />
             <SelectField label="Year" value={filterYear} onChange={v=>setFilterYear(Number(v))} options={[{value: filterYear, label: String(filterYear)}, {value: filterYear-1, label: String(filterYear-1)}, {value: filterYear+1, label: String(filterYear+1)}]} />
           </div>
           <div className="flex gap-3 text-xs font-medium overflow-x-auto">
@@ -314,8 +359,8 @@ export default function PaymentsPageManager() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-white/60">
-                  <tr className="text-[11px] uppercase tracking-wide text-gray-500">
+                <thead className="sticky top-0 z-10 bg-white/70 backdrop-blur">
+                  <tr className="text-[10px] uppercase tracking-wide text-gray-600">
                     <Th>Tenant</Th><Th>Amount</Th><Th>Type</Th><Th>Period</Th><Th>Due</Th><Th>Status</Th><Th>Method</Th><Th>Actions</Th> {/* NEW: Added Type column */}
                   </tr>
                 </thead>
@@ -329,7 +374,7 @@ export default function PaymentsPageManager() {
                           <div className="font-medium text-gray-800">{tenant ? `${tenant.user_details?.first_name||''} ${tenant.user_details?.last_name||''}`.trim() || tenant.user_details?.username : '—'}</div>
                           <div className="text-[11px] text-gray-500">{tenant?.user_details?.email || '—'}</div>
                         </Td>
-                        <Td><span className="font-semibold text-gray-800">{formatCurrency(p.amount)}</span></Td>
+                        <Td><span className="font-semibold text-gray-800 tabular-nums block text-right">{formatCurrency(p.amount)}</span></Td>
                         <Td>{p.payment_type || 'N/A'}</Td> {/* NEW: Added payment type cell */}
                         <Td>{months.find(m=>m.value===p.payment_for_month)?.name} {p.payment_for_year}</Td>
                         <Td>

@@ -168,7 +168,7 @@ export default function TenantDashboard() {
   };
 
   const renderOverview = () => (
-    <div className="space-y-8 pb-24 w-full">
+    <div className="space-y-4 xl:space-y-6 pb-24 w-full">
       {/* Header & Metrics */}
       <div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 relative overflow-hidden">
         <div className="absolute -top-14 -left-14 w-72 h-72 bg-gradient-to-br from-indigo-500/10 to-blue-600/10 rounded-full blur-3xl" />
@@ -252,7 +252,7 @@ export default function TenantDashboard() {
       </div>
 
       {/* Snapshot Sections */}
-      <div className="grid grid-cols-3 gap-8">
+      <div className="grid grid-cols-3 gap-4">
         <SectionCard title="Rent Alerts Snapshot">
           {alertsLoading ? <LoadingPlaceholder /> : (
             <div className="text-[12px] space-y-3">
@@ -330,7 +330,7 @@ export default function TenantDashboard() {
     <div className="flex min-h-screen ">
       <TenantSidebar active={sidebarActive} onChange={handleSidebarChange} />
       <div className="flex-1 flex flex-col">
-        <main className="px-10 py-10 max-w-[1400px] mx-auto w-full relative z-10" style={{ paddingTop: '100px' }}>
+        <main className="p-4 lg:p-6 xl:p-8 space-y-4 xl:space-y-6 mx-auto w-full max-w-none relative z-10">
           {renderPage()}
         </main>
 
@@ -424,4 +424,3 @@ export default function TenantDashboard() {
     </div>
   );
 }
-                  

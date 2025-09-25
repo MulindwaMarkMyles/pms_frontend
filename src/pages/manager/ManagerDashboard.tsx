@@ -7,8 +7,8 @@ import ComplaintsPage from './ComplaintsPage';
 import ManagerSidebar from '../../components/manager/ManagerSidebar';
 import type { DashboardPage } from '../../components/manager/ManagerSidebar';
 import { useManagerDashboardData } from '../../hooks/useManagerDashboardData';
-import Beams from '../../components/background';
 import { AlertTriangle, User, DollarSign, Wrench } from 'lucide-react'; // Add Lucide icon imports for replacements
+import OccupancyChart from '../../components/charts/OccupancyChart';
 import SecurityDepositsPageManager from './SecurityDepositsPage';
 
 export default function ManagerDashboard() {
@@ -36,52 +36,22 @@ export default function ManagerDashboard() {
 
 	return (
 
-		<div className="width-auto flex relative overflow-hidden" style={{ paddingTop:'100px' }}>
-			{/* Creative SVG Blobs */}
-			{/* <div className="absolute top-10 left-20 w-148 h-148 opacity-20" style={{ transform: 'rotate(45deg)' }}>
-				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-					<path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
-				</svg>
-			</div>
-			<div className="absolute top-120 left-80 w-148 h-148 opacity-20" style={{ transform: 'rotate(45deg)' }}>
-				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-					<path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
-				</svg>
-			</div>
-			<div className="absolute top-40 right-32 w-156 h-156 opacity-15" style={{ transform: 'rotate(-30deg)' }}>
-				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-					<path d="M30 20c15-5 35 5 40 25s-5 35-25 40S15 75 10 55 15 25 30 20z" fill="#10b981" />
-				</svg>
-			</div>
-			<div className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10" style={{ transform: 'rotate(60deg)' }}>
-				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-					<path d="M20 30c10-10 30-10 40 0s10 30 0 40-30 10-40 0S10 40 20 30z" fill="#f59e0b" />
-				</svg>
-			</div>
-			<div className="absolute top-1/3 right-10 w-40 h-40 opacity-25" style={{ transform: 'rotate(120deg)' }}>
-				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-					<path d="M40 10c15 5 25 25 20 40s-25 25-40 20S5 55 10 40 25 5 40 10z" fill="#ef4444" />
-				</svg>
-			</div>
-			<div className="absolute bottom-10 right-1/3 w-52 h-52 opacity-20" style={{ transform: 'rotate(-45deg)' }}>
-				<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-					<path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
-				</svg>
-			</div> */}
+		<div className="w-full flex relative overflow-hidden">
 			<ManagerSidebar active={activePage} onChange={setActivePage} />
 
-			<main className="flex-1 p-4 lg:p-6 xl:p-12 space-y-6 xl:space-y-8 mx-auto w-full max-w-7xl relative z-10">
+			<main className="flex-1 p-4 lg:p-6 xl:p-8 space-y-4 xl:space-y-6 mx-auto w-full max-w-none relative z-10">
 				{/* Top Cluster */}
-				<TopCluster dashboard={dashboard} />
+				<TopCluster dashboard={dashboard} onNewEstate={() => setActivePage('estates')} />
 				{/* Secondary Grid */}
-				<div className="grid grid-cols-12 gap-6 items-start">
-					<div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-6">
+				<div className="grid grid-cols-12 gap-4 items-start">
+					<div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-4">
 						<PerformanceOverview />
 						<OpenComplaints />
 					</div>
-					<div className="col-span-12 lg:col-span-4 xl:col-span-3 space-y-6">
+					<div className="col-span-12 lg:col-span-4 xl:col-span-3 space-y-4">
 						<SystemStatus dashboard={dashboard} />
-						<PerformanceTips />
+						{/* <PerformanceTips /> */}
+						<QuickActivity />
 					</div>
 				</div>
 			</main>
@@ -90,11 +60,11 @@ export default function ManagerDashboard() {
 }
 
 /* ========== SECTION COMPONENTS ========== */
-function TopCluster({dashboard}:{dashboard:any}) {
+function TopCluster({dashboard, onNewEstate}:{dashboard:any; onNewEstate: () => void}) {
 	return (
-		<div className="relative grid grid-cols-12 gap-6">
+			<div className="relative grid grid-cols-12 gap-4">
 			<div className="col-span-12 lg:col-span-7 xl:col-span-9 relative z-10">
-				<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden" style={{ backgroundImage: 'url(/dashboard-header-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'right' }}>
+				<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-2xl p-6 overflow-hidden" style={{ backgroundImage: 'url(/dashboard-header-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'right' }}>
 					<div className="absolute -top-10 -right-10 w-52 h-52 bg-gradient-to-br from-blue-500/10 to-blue-700/10 rounded-full blur-3xl" />
 					<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 relative z-10">
 						<div className="flex items-center gap-5">
@@ -108,17 +78,17 @@ function TopCluster({dashboard}:{dashboard:any}) {
 							</div>
 						</div>
 						<div className="flex gap-3 flex-wrap">
-							<button onClick={dashboard.refresh} className="px-5 py-3 rounded-xl bg-white/60 backdrop-blur-md border border-white/30 shadow hover:shadow-lg transition flex items-center gap-2 text-sm font-medium text-blue-700">
+					<button onClick={dashboard.refresh} className="px-5 py-3 rounded-xl bg-white/60 backdrop-blur-md border border-white/30 shadow hover:shadow-lg transition flex items-center gap-2 text-sm font-medium text-blue-700">
 								<span className="material-icons text-base">refresh</span>
 								Refresh
 							</button>
-							<button className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-xl hover:shadow-2xl transition flex items-center gap-2 text-sm font-medium">
+					<button onClick={onNewEstate} className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-xl hover:shadow-2xl transition flex items-center gap-2 text-sm font-medium">
 								<span className="material-icons text-base">add_business</span>
 								New Estate
 							</button>
 						</div>
 					</div>
-					<div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+					<div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
 						<Metric label="ESTATES" icon="domain" color="text-blue-500" value={dashboard.estates} desc="Active portfolios" />
 						<Metric label="TENANTS" icon="group" color="text-indigo-500" value={dashboard.tenants} desc="Current occupants" />
 						<Metric label="OPEN CASES" icon="report" color="text-amber-500" value={dashboard.pendingComplaints} desc="Complaints pending" />
@@ -128,7 +98,8 @@ function TopCluster({dashboard}:{dashboard:any}) {
 			</div>
 			<div className="col-span-12 lg:col-span-5 xl:col-span-3 space-y-6">
 				<FinancialSnapshot dashboard={dashboard} />
-				<QuickActivity />
+				{/* <QuickActivity /> */}
+				<PerformanceTips />
 			</div>
 		</div>
 	);
@@ -137,7 +108,7 @@ function TopCluster({dashboard}:{dashboard:any}) {
 /* ========== REUSABLE PARTS ========== */
 function Metric({label, icon, color, value, desc}:{label:string;icon:string;color:string;value:any;desc:string}) {
 	return (
-		<div className="p-4 rounded-2xl bg-white/50 backdrop-blur border border-white/30 shadow flex flex-col gap-1">
+		<div className="p-3 rounded-2xl bg-white/50 backdrop-blur border border-white/30 shadow flex flex-col gap-1">
 			<div className="flex items-center gap-2 text-xs font-medium text-gray-500"><span className={`material-icons text-[16px] ${color}`}>{icon}</span>{label}</div>
 			<div className="text-2xl font-bold text-gray-900 tracking-tight">{value}</div>
 			<div className="text-[11px] text-gray-500">{desc}</div>
@@ -147,13 +118,13 @@ function Metric({label, icon, color, value, desc}:{label:string;icon:string;colo
 
 function FinancialSnapshot({dashboard}:{dashboard:any}) {
 	return (
-		<div className="backdrop-blur-xl bg-gradient-to-br from-blue-600/90 to-blue-700/90 text-white rounded-3xl shadow-2xl p-6 relative overflow-hidden">
+		<div className="backdrop-blur-xl bg-gradient-to-br from-blue-600/90 to-blue-700/90 text-white rounded-3xl shadow-2xl p-5 relative overflow-hidden">
 			<div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
 			<div className="flex items-center justify-between mb-4">
 				<h3 className="font-semibold tracking-wide text-sm opacity-90 flex items-center gap-2"><span className="material-icons text-base">insights</span>Financial Snapshot</h3>
 				<span className="text-[10px] bg-white/20 px-2 py-1 rounded-md">LIVE</span>
 			</div>
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid grid-cols-2 gap-3">
 				<div className="p-4 bg-white/10 rounded-2xl flex flex-col gap-1"><span className="text-[10px] uppercase tracking-wide opacity-70">Pending</span><span className="text-xl font-bold">{dashboard.paymentsPending}</span><span className="text-[10px] opacity-60">Payments</span></div>
 				<div className="p-4 bg-white/10 rounded-2xl flex flex-col gap-1"><span className="text-[10px] uppercase tracking-wide opacity-70">Overdue</span><span className="text-xl font-bold">{dashboard.paymentsOverdue}</span><span className="text-[10px] opacity-60">Payments</span></div>
 				<div className="col-span-2 p-4 bg-white/10 rounded-2xl">
@@ -175,9 +146,9 @@ const recentActivity = [
 
 function QuickActivity() {
 	return (
-		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6" style={{ backgroundImage: 'url(/activity-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'top left' }}>
+		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-5" >
 			<h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2 text-sm"><span className="material-icons text-base text-blue-600">history_toggle_off</span>Quick Activity</h3>
-			<div className="space-y-4 max-h-72 overflow-y-auto pr-2 custom-scroll">
+			<div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scroll">
 				{recentActivity.slice(0,6).map((a,i) => (
 					<div key={i} className="flex items-start gap-3 group">
 						{/* Replace img with conditional Lucide icons based on activity type */}
@@ -202,12 +173,12 @@ function PerformanceOverview() {
 		{ label: 'Retention Rate', value: '94%', icon: 'verified_user', color: 'text-amber-600' }
 	];
 	return (
-		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6 lg:-mt-50">
+		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-5">
 			<div className="flex items-center justify-between mb-6">
 				<h3 className="font-semibold text-gray-700 flex items-center gap-2"><span className="material-icons text-blue-600 text-base">bar_chart</span>Performance Overview</h3>
 				<button className="text-xs px-3 py-1 rounded-lg bg-white/60 border border-white/30 hover:bg-white/80 transition flex items-center gap-1 text-gray-600"><span className="material-icons text-[14px]">calendar_today</span>This Month</button>
 			</div>
-			<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+			<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
 				{metrics.map((m,i) => (
 					<div key={i} className="p-4 rounded-2xl bg-white/50 backdrop-blur border border-white/30 flex flex-col gap-2">
 						<div className="flex items-center gap-2 text-xs text-gray-500 font-medium"><span className={`material-icons text-[16px] ${m.color}`}>{m.icon}</span>{m.label}</div>
@@ -216,19 +187,24 @@ function PerformanceOverview() {
 					</div>
 				))}
 			</div>
-			<div className="h-60 flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl" style={{ backgroundImage: 'url(/analytics-chart.png)', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}>Analytics Chart Placeholder</div>
+			<div className="h-80 flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl">
+				<OccupancyChart
+					data={[82, 79, 85, 88, 86, 90, 92, 91, 93, 94, 95, 96]}
+					labels={["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]}
+				/>
+			</div>
 		</div>
 	);
 }
 
 function OpenComplaints() {
 	return (
-		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6" style={{ backgroundImage: 'url(/complaints-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'bottom right', backgroundBlendMode: 'overlay' }}>
+		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-5" style={{ backgroundImage: 'url(/complaints-bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'bottom right', backgroundBlendMode: 'overlay' }}>
 			<div className="flex items-center justify-between mb-6">
 				<h3 className="font-semibold text-gray-700 flex items-center gap-2"><span className="material-icons text-blue-600 text-base">priority_high</span>Open Complaints</h3>
 				<button className="text-xs px-3 py-1 rounded-lg bg-white/60 border border-white/30 hover:bg-white/80 transition flex items-center gap-1 text-gray-600"><span className="material-icons text-[14px]">open_in_full</span>View All</button>
 			</div>
-			<div className="space-y-4 max-h-72 overflow-y-auto pr-2">
+			<div className="space-y-3 max-h-80 overflow-y-auto pr-2">
 				{recentActivity.filter(a=>a.type==='complaint').map((c,i)=>(
 					<div key={i} className="p-4 rounded-2xl bg-white/60 backdrop-blur border border-white/30 hover:shadow flex items-start gap-3">
 						{/* Replace img with Lucide AlertTriangle icon for complaints */}
@@ -247,7 +223,7 @@ function OpenComplaints() {
 
 function SystemStatus({dashboard}:{dashboard:any}) {
 	return (
-		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-6">
+		<div className="backdrop-blur-xl bg-white/70 border border-white/20 rounded-3xl shadow-xl p-5">
 			<h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2 text-sm"><span className="material-icons text-base text-blue-600">update</span>System Status</h3>
 			<div className="grid grid-cols-2 gap-4 text-sm items-stretch w-full">
 				<div className="w-full h-full">
@@ -283,7 +259,7 @@ function PerformanceTips() {
 			<ul className="space-y-3 text-sm">
 				<li className="flex gap-3"><span className="material-icons text-emerald-300 text-base">task_alt</span><span>Resolve pending complaints within 24h to keep retention high.</span></li>
 				<li className="flex gap-3"><span className="material-icons text-amber-300 text-base">payments</span><span>Follow up on overdue payments to improve cash flow.</span></li>
-				<li className="flex gap-3"><span className="material-icons text-blue-200 text-base">insights</span><span>Track occupancy trends to plan marketing efforts.</span></li>
+				{/* <li className="flex gap-3"><span className="material-icons text-blue-200 text-base">insights</span><span>Track occupancy trends to plan marketing efforts.</span></li> */}
 			</ul>
 		</div>
 	);
