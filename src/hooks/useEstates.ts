@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 
 export interface EstateApi {
   id: number;
@@ -7,13 +8,38 @@ export interface EstateApi {
   size?: string;
   description?: string;
   created_at?: string;
+  image?: string; // URL string from backend
 }
 
-export interface ApartmentApi { id: number; number?: string; size?: string; rent_amount?: string; number_of_rooms?: number; color?: string; description?: string; amenities?: any[]; furnishings?: any[]; block?: { id:number; name:string; estate?: { id:number } }; }
+export interface ApartmentApi { 
+  id: number; 
+  number?: string; 
+  size?: string; 
+  rent_amount?: string; 
+  number_of_rooms?: number; 
+  color?: string; 
+  description?: string; 
+  amenities?: any[]; 
+  furnishings?: any[]; 
+  image?: string; // URL from backend
+  block?: { id:number; name:string; estate?: { id:number } }; 
+}
 export interface BlockApi { id: number; name: string; description?: string; }
 
 // Added input helper types for nested create/update
-interface CreateApartmentInput { id?: number; number?: string; size?: string; rent_amount?: string | number; number_of_rooms?: string | number; color?: string; description?: string; amenities?: number[]; furnishings?: number[]; }
+interface CreateApartmentInput { 
+  id?: number; 
+  number?: string; 
+  size?: string; 
+  rent_amount?: string | number; 
+  number_of_rooms?: string | number; 
+  color?: string; 
+  description?: string; 
+  amenities?: number[]; 
+  furnishings?: number[]; 
+  image?: File; // File object for upload
+}
+
 interface CreateBlockInput { id?: number; name?: string; description?: string; apartments?: CreateApartmentInput[]; }
 
 interface EstateMetrics {
@@ -30,9 +56,11 @@ interface EstateStructureEntry {
   blocks: Array<BlockApi & { apartments: ApartmentApi[]; apartmentsLoading: boolean; apartmentsError: string | null }>;
 }
 
-const apiBase = 'http://127.0.0.1:8000';
-
 const authHeaders = () => ({
+  'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+});
+
+const authHeadersJson = () => ({
   'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
   'Content-Type': 'application/json'
 });
@@ -107,10 +135,8 @@ export const useEstates = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiBase}/api/core/estates/`, { headers: authHeaders() });
-      if (!res.ok) throw new Error(`Failed (${res.status})`);
-      const json = await res.json();
-      setData(Array.isArray(json) ? json : []);
+      const res = await axios.get('/api/core/estates/', { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
+      setData(Array.isArray(res.data) ? res.data : []);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -127,23 +153,23 @@ export const useEstates = () => {
         : { blocks: 0, apartments: 0, availableApartments: 0, loading: true, error: null }
     }));
     try {
-      const blocksRes = await fetch(`${apiBase}/api/core/blocks/?estate_id=${estateId}`, { headers: authHeaders() });
-      const blocksJson = blocksRes.ok ? await blocksRes.json() : [];
+      const blocksRes = await axios.get(`/api/core/blocks/?estate_id=${estateId}`, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
+      const blocksJson = blocksRes.data;
       let apartmentsCount = 0;
       for (const b of blocksJson.slice(0, 5)) {
         try {
-          const aRes = await fetch(`${apiBase}/api/core/apartments/?block_id=${b.id}`, { headers: authHeaders() });
-          if (aRes.ok) {
-            const aJson = await aRes.json();
+          const aRes = await axios.get(`/api/core/apartments/?block_id=${b.id}`, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
+          if (aRes.status === 200) {
+            const aJson = aRes.data;
             if (Array.isArray(aJson)) apartmentsCount += aJson.length;
           }
         } catch { /* ignore */ }
       }
       // UPDATED: use new available apartments response (filtered server-side)
-      const availRes = await fetch(`${apiBase}/api/core/apartments/available/?estate_id=${estateId}`, { headers: authHeaders() });
+      const availRes = await axios.get(`/api/core/apartments/available/?estate_id=${estateId}`, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
       let availableForEstate = 0;
-      if (availRes.ok) {
-        const availJson: AvailableApartmentsResponse = await availRes.json();
+      if (availRes.status === 200) {
+        const availJson: AvailableApartmentsResponse = availRes.data;
         availableForEstate = availJson.total_available ??
           (Array.isArray(availJson.apartments) ? availJson.apartments.length : 0);
       }
@@ -190,11 +216,11 @@ export const useEstates = () => {
         }
       });
       const qs = params.toString();
-      const res = await fetch(`${apiBase}/api/core/apartments/available/${qs ? `?${qs}` : ''}`, {
-        headers: authHeaders()
+      const res = await axios.get(`/api/core/apartments/available/${qs ? `?${qs}` : ''}`, {
+        baseURL: 'http://localhost:8000',
+        headers: authHeadersJson()
       });
-      if (!res.ok) throw new Error(`Fetch failed (${res.status})`);
-      const json: AvailableApartmentsResponse | AvailableApartment[] = await res.json();
+      const json: AvailableApartmentsResponse | AvailableApartment[] = res.data;
       // Backwards compatibility: if API returns a plain array
       let apartments: AvailableApartment[] = [];
       let summary: AvailableApartmentsSummary | null = null;
@@ -230,16 +256,16 @@ export const useEstates = () => {
       [estateId]: prev[estateId] ? { ...prev[estateId], loading: true, error: null } : { loading: true, error: null, blocks: [] }
     }));
     try {
-      const blocksRes = await fetch(`${apiBase}/api/core/blocks/?estate_id=${estateId}`, { headers: authHeaders() });
-      const blocksJson: BlockApi[] = blocksRes.ok ? await blocksRes.json() : [];
+      const blocksRes = await axios.get(`/api/core/blocks/?estate_id=${estateId}`, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
+      const blocksJson: BlockApi[] = blocksRes.data;
       const blocksWithMeta: EstateStructureEntry['blocks'] = blocksJson.map(b => ({ ...b, apartments: [], apartmentsLoading: true, apartmentsError: null }));
       setStructureCache(prev => ({ ...prev, [estateId]: { loading: false, error: null, blocks: blocksWithMeta } }));
       // fetch apartments per block in parallel
       await Promise.all(blocksWithMeta.map(async (b) => {
         try {
-          const aRes = await fetch(`${apiBase}/api/core/apartments/?block_id=${b.id}`, { headers: authHeaders() });
-          if (aRes.ok) {
-            const aJson = await aRes.json();
+          const aRes = await axios.get(`/api/core/apartments/?block_id=${b.id}`, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
+          if (aRes.status === 200) {
+            const aJson = aRes.data;
             setStructureCache(prev => ({
               ...prev,
               [estateId]: {
@@ -265,28 +291,65 @@ export const useEstates = () => {
     }
   }, []);
 
-  const createEstate = useCallback(async (payload: { name: string; address: string; size?: string; description?: string; blocks?: CreateBlockInput[] }) => {
+  const createEstate = useCallback(async (payload: { name: string; address: string; size?: string; description?: string; blocks?: CreateBlockInput[]; image?: File }) => {
     setCreating(true);
     setCreateError(null);
     try {
-      const { blocks = [], ...estateData } = payload;
-      // 1. Create estate (no nested support server-side)
-      const res = await fetch(`${apiBase}/api/core/estates/`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(estateData) });
-      if (!res.ok) throw new Error(`Create failed (${res.status})`);
-      const estate = await res.json();
+      const { blocks = [], image, ...estateData } = payload;
+      
+      // 1. Create estate with image using FormData
+      const formData = new FormData();
+      formData.append('name', estateData.name);
+      formData.append('address', estateData.address);
+      if (estateData.size) formData.append('size', estateData.size);
+      if (estateData.description) formData.append('description', estateData.description);
+      if (image) formData.append('image', image);
+
+      const res = await axios.post('/api/core/estates/', formData, { 
+        baseURL: 'http://localhost:8000', 
+        headers: authHeaders() // Don't set Content-Type, let browser set it with boundary
+      });
+      const estate = res.data;
       const estateId = estate.id;
+      
       // 2. Create blocks & apartments sequentially (ignore failures per item but collect first error)
       for (const b of blocks.filter(b=> (b.name||'').trim())) {
         try {
-          const bRes = await fetch(`${apiBase}/api/core/blocks/`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ estate: estateId, name: b.name, description: b.description||undefined }) });
-          if (!bRes.ok) throw new Error(`Block fail (${bRes.status})`);
-          const bJson = await bRes.json();
+          const bRes = await axios.post('/api/core/blocks/', { estate: estateId, name: b.name, description: b.description||undefined }, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
+          const bJson = bRes.data;
           const blockId = bJson.id;
           for (const a of (b.apartments||[]).filter(a=> (a.number||'').trim())) {
             try {
-              const aptPayload:any = { block: blockId, number: a.number };
-              if (a.size) aptPayload.size = a.size; if (a.rent_amount) aptPayload.rent_amount = parseFloat(a.rent_amount as any); if (a.number_of_rooms) aptPayload.number_of_rooms = parseInt(a.number_of_rooms as any); if (a.color) aptPayload.color = a.color; if (a.description) aptPayload.description = a.description; if (a.amenities?.length) aptPayload.amenities = a.amenities; if (a.furnishings?.length) aptPayload.furnishings = a.furnishings;
-              await fetch(`${apiBase}/api/core/apartments/`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(aptPayload) });
+              // Use FormData for apartment with image
+              if (a.image) {
+                const aptFormData = new FormData();
+                aptFormData.append('block', String(blockId));
+                aptFormData.append('number', a.number);
+                if (a.size) aptFormData.append('size', a.size);
+                if (a.rent_amount) aptFormData.append('rent_amount', String(a.rent_amount));
+                if (a.number_of_rooms) aptFormData.append('number_of_rooms', String(a.number_of_rooms));
+                if (a.color) aptFormData.append('color', a.color);
+                if (a.description) aptFormData.append('description', a.description);
+                if (a.amenities?.length) {
+                  a.amenities.forEach(amenityId => aptFormData.append('amenities', String(amenityId)));
+                }
+                if (a.furnishings?.length) {
+                  a.furnishings.forEach(furnishingId => aptFormData.append('furnishings', String(furnishingId)));
+                }
+                aptFormData.append('image', a.image);
+                await axios.post('/api/core/apartments/', aptFormData, { baseURL: 'http://localhost:8000', headers: authHeaders() });
+              } else {
+                // JSON for apartment without image
+                const aptPayload:any = { block: blockId, number: a.number };
+                if (a.size) aptPayload.size = a.size; 
+                if (a.rent_amount) aptPayload.rent_amount = parseFloat(a.rent_amount as any); 
+                if (a.number_of_rooms) aptPayload.number_of_rooms = parseInt(a.number_of_rooms as any); 
+                if (a.color) aptPayload.color = a.color; 
+                if (a.description) aptPayload.description = a.description; 
+                if (a.amenities?.length) aptPayload.amenities = a.amenities; 
+                if (a.furnishings?.length) aptPayload.furnishings = a.furnishings;
+                await axios.post('/api/core/apartments/', aptPayload, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
+              }
             } catch { /* ignore apartment error */ }
           }
         } catch (err:any) { if (!createError) setCreateError(err.message); }
@@ -301,41 +364,81 @@ export const useEstates = () => {
     } finally { setCreating(false); }
   }, [fetchEstates, fetchEstateStructure, createError]);
 
-  const updateEstate = useCallback(async (estateId: number, payload: { name?: string; address?: string; size?: string; description?: string; blocks?: CreateBlockInput[] }) => {
+  const updateEstate = useCallback(async (estateId: number, payload: { name?: string; address?: string; size?: string; description?: string; blocks?: CreateBlockInput[]; image?: File }) => {
     try {
-      const { blocks = [], ...estateData } = payload;
-      // 1. Update estate core fields if any provided
-      if (Object.keys(estateData).length) {
-        const res = await fetch(`${apiBase}/api/core/estates/${estateId}/`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(estateData) });
-        if (!res.ok) throw new Error(`Update failed (${res.status})`);
+      const { blocks = [], image, ...estateData } = payload;
+      
+      // 1. Update estate core fields (with image if provided)
+      if (Object.keys(estateData).length > 0 || image) {
+        const formData = new FormData();
+        if (estateData.name) formData.append('name', estateData.name);
+        if (estateData.address) formData.append('address', estateData.address);
+        if (estateData.size) formData.append('size', estateData.size);
+        if (estateData.description) formData.append('description', estateData.description);
+        if (image) formData.append('image', image);
+
+        await axios.patch(`/api/core/estates/${estateId}/`, formData, { 
+          baseURL: 'http://localhost:8000', 
+          headers: authHeaders() // Don't set Content-Type, let browser set it with boundary
+        });
       }
+      
       // 2. Process blocks
       for (const b of blocks.filter(b=> (b.name||'').trim())) {
         if (b.id) {
           // existing block update
-            try { await fetch(`${apiBase}/api/core/blocks/${b.id}/`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ name: b.name, description: b.description||undefined }) }); } catch {/* ignore */}
+          try { await axios.patch(`/api/core/blocks/${b.id}/`, { name: b.name, description: b.description||undefined }, { baseURL: 'http://localhost:8000', headers: authHeadersJson() }); } catch {/* ignore */}
         } else {
           // create new block
           try {
-            const bRes = await fetch(`${apiBase}/api/core/blocks/`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ estate: estateId, name: b.name, description: b.description||undefined }) });
-            if (bRes.ok) {
-              const bJson = await bRes.json();
-              b.id = bJson.id; // mutate local to allow apartments creation
-            }
+            const bRes = await axios.post('/api/core/blocks/', { estate: estateId, name: b.name, description: b.description||undefined }, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
+            const bJson = bRes.data;
+            b.id = bJson.id; // mutate local to allow apartments creation
           } catch {/* ignore */}
         }
         // Apartments inside block
         if (b.id && b.apartments) {
           for (const a of b.apartments.filter(a=> (a.number||'').trim())) {
-            const aptPayload:any = { number: a.number };
-            if (a.size) aptPayload.size = a.size; if (a.rent_amount) aptPayload.rent_amount = parseFloat(a.rent_amount as any); if (a.number_of_rooms) aptPayload.number_of_rooms = parseInt(a.number_of_rooms as any); if (a.color) aptPayload.color = a.color; if (a.description) aptPayload.description = a.description;
-            // FIX: filter out null/undefined amenity IDs
-            aptPayload.amenities = (a.amenities||[]).filter(am=> am!=null);
-            aptPayload.furnishings = a.furnishings||[];
-            if (a.id) {
-              try { await fetch(`${apiBase}/api/core/apartments/${a.id}/`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(aptPayload) }); } catch {/* ignore */}
+            // Use FormData if image is present
+            if (a.image) {
+              const aptFormData = new FormData();
+              aptFormData.append('number', a.number);
+              if (a.size) aptFormData.append('size', a.size);
+              if (a.rent_amount) aptFormData.append('rent_amount', String(a.rent_amount));
+              if (a.number_of_rooms) aptFormData.append('number_of_rooms', String(a.number_of_rooms));
+              if (a.color) aptFormData.append('color', a.color);
+              if (a.description) aptFormData.append('description', a.description);
+              const validAmenities = (a.amenities||[]).filter(am=> am!=null);
+              if (validAmenities.length) {
+                validAmenities.forEach(amenityId => aptFormData.append('amenities', String(amenityId)));
+              }
+              if (a.furnishings?.length) {
+                a.furnishings.forEach(furnishingId => aptFormData.append('furnishings', String(furnishingId)));
+              }
+              aptFormData.append('image', a.image);
+
+              if (a.id) {
+                try { await axios.patch(`/api/core/apartments/${a.id}/`, aptFormData, { baseURL: 'http://localhost:8000', headers: authHeaders() }); } catch {/* ignore */}
+              } else {
+                aptFormData.append('block', String(b.id));
+                try { await axios.post('/api/core/apartments/', aptFormData, { baseURL: 'http://localhost:8000', headers: authHeaders() }); } catch{/* ignore */}
+              }
             } else {
-              try { await fetch(`${apiBase}/api/core/apartments/`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ block: b.id, ...aptPayload }) }); } catch{/* ignore */}
+              // JSON for apartment without image
+              const aptPayload:any = { number: a.number };
+              if (a.size) aptPayload.size = a.size; 
+              if (a.rent_amount) aptPayload.rent_amount = parseFloat(a.rent_amount as any); 
+              if (a.number_of_rooms) aptPayload.number_of_rooms = parseInt(a.number_of_rooms as any); 
+              if (a.color) aptPayload.color = a.color; 
+              if (a.description) aptPayload.description = a.description;
+              aptPayload.amenities = (a.amenities||[]).filter(am=> am!=null);
+              aptPayload.furnishings = a.furnishings||[];
+              
+              if (a.id) {
+                try { await axios.patch(`/api/core/apartments/${a.id}/`, aptPayload, { baseURL: 'http://localhost:8000', headers: authHeadersJson() }); } catch {/* ignore */}
+              } else {
+                try { await axios.post('/api/core/apartments/', { block: b.id, ...aptPayload }, { baseURL: 'http://localhost:8000', headers: authHeadersJson() }); } catch{/* ignore */}
+              }
             }
           }
         }
@@ -350,8 +453,7 @@ export const useEstates = () => {
 
   const deleteEstate = useCallback(async (estateId: number) => {
     try {
-      const res = await fetch(`${apiBase}/api/core/estates/${estateId}/`, { method: 'DELETE', headers: authHeaders() });
-      if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+      await axios.delete(`/api/core/estates/${estateId}/`, { baseURL: 'http://localhost:8000', headers: authHeadersJson() });
       await fetchEstates();
       setMetricsCache(prev => {
         const copy = { ...prev };

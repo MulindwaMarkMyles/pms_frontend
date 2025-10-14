@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
 
 interface DashboardStats {
   estates: number;
@@ -16,14 +17,14 @@ interface DashboardStats {
 // Helper fetch with auth
 const authFetch = async (url: string) => {
   const token = localStorage.getItem('access_token');
-  const res = await fetch(`http://127.0.0.1:8000${url}`, {
+  const res = await axios.get(url, {
+    baseURL: 'http://localhost:8000',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
   });
-  if (!res.ok) throw new Error(`${url} -> ${res.status}`);
-  return res.json();
+  return res.data;
 };
 
 export const useManagerDashboardData = () => {

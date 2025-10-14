@@ -4,6 +4,7 @@ import { useLoginMutation } from '../services/apiSlice';
 import { useAppDispatch } from '../store';
 import { setCredentials } from '../services/authSlice';
 import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import axios from 'axios';
 
 export default function LoginPage() {
   const [credentials, setCredentialsState] = useState({ username: '', password: '' });
@@ -21,40 +22,36 @@ export default function LoginPage() {
     try {
       const loginResult = await login(credentials).unwrap();
       try {
-        const profileResponse = await fetch('http://127.0.0.1:8000/api/profile/', {
-          method: 'GET',
+        const profileResponse = await axios.get('/api/profile/', {
+          baseURL: 'http://localhost:8000',
           headers: {
             'Authorization': `Bearer ${loginResult.access}`,
             'Content-Type': 'application/json',
           },
         });
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          dispatch(setCredentials({
-            access: loginResult.access,
-            refresh: loginResult.refresh,
-            user: profileData
-          }));
-          localStorage.setItem('access_token', loginResult.access);
-          localStorage.setItem('refresh_token', loginResult.refresh);
-          localStorage.setItem('user_profile', JSON.stringify(profileData));
-          const userRole = profileData.role;
-          let targetPath = '/tenant';
-          switch (userRole?.toLowerCase()) {
-            case 'manager':
-              targetPath = '/manager';
-              break;
-            case 'owner':
-              targetPath = '/owner';
-              break;
-            case 'tenant':
-              targetPath = '/tenant';
-              break;
-          }
-          window.location.href = targetPath;
-        } else {
-          window.location.href = '/tenant';
+        const profileData = profileResponse.data;
+        dispatch(setCredentials({
+          access: loginResult.access,
+          refresh: loginResult.refresh,
+          user: profileData
+        }));
+        localStorage.setItem('access_token', loginResult.access);
+        localStorage.setItem('refresh_token', loginResult.refresh);
+        localStorage.setItem('user_profile', JSON.stringify(profileData));
+        const userRole = profileData.role;
+        let targetPath = '/tenant';
+        switch (userRole?.toLowerCase()) {
+          case 'manager':
+            targetPath = '/manager';
+            break;
+          case 'owner':
+            targetPath = '/owner';
+            break;
+          case 'tenant':
+            targetPath = '/tenant';
+            break;
         }
+        window.location.href = targetPath;
       } catch {
         window.location.href = '/tenant';
       }

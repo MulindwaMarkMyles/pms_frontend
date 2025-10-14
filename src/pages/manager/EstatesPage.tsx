@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useEstates } from '../../hooks/useEstates';
+import { Input, Textarea, Button, Modal, Th, Td, ApartmentPreview, EstatePreview, MiniStatMobile } from '../../components/ui/manager_reusables';
 import { Building, Home, RefreshCw, Plus, Edit, Trash2, Eye, EyeOff, X, Search, Table, TreePine, DoorOpen, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function EstatesPage() {
@@ -26,8 +27,14 @@ export default function EstatesPage() {
   const [showEditModal, setShowEditModal] = useState<null | number>(null);
   const [form, setForm] = useState({ name: '', address: '', size: '', description: '' });
   const [createBlocks, setCreateBlocks] = useState<any[]>([]); // blocks for create modal
+  const [createImage, setCreateImage] = useState<File | null>(null);
+  const [createImagePreview, setCreateImagePreview] = useState<string | null>(null);
+  const [createApartmentImages, setCreateApartmentImages] = useState<Record<string, { file: File; preview: string }>>({});
   const [editForm, setEditForm] = useState({ name: '', address: '', size: '', description: '' });
   const [editBlocks, setEditBlocks] = useState<any[]>([]); // blocks (existing + new) for edit modal
+  const [editImage, setEditImage] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [editApartmentImages, setEditApartmentImages] = useState<Record<string, { file: File; preview: string }>>({});
   const [amenities, setAmenities] = useState<any[]>([]); // fetched amenities for checkboxes
   const [selectedEstate, setSelectedEstate] = useState<number | null>(null);
   const [activeBlock, setActiveBlock] = useState<number | null>(null);
@@ -55,11 +62,26 @@ export default function EstatesPage() {
         number_of_rooms:a.number_of_rooms||undefined,
         color:a.color||undefined,
         description:a.description||undefined,
-        amenities:a.amenities||[]
+        amenities:a.amenities||[],
+        image: createApartmentImages[a.tempId]?.file || undefined
       }))
     }));
-    const ok = await createEstate({ name: form.name.trim(), address: form.address.trim(), size: form.size.trim() || undefined, description: form.description.trim() || undefined, blocks: blocksPayload.length? blocksPayload: undefined } as any);
-    if (ok) { setForm({ name: '', address: '', size: '', description: '' }); setCreateBlocks([]); setShowAddModal(false); }
+    const ok = await createEstate({ 
+      name: form.name.trim(), 
+      address: form.address.trim(), 
+      size: form.size.trim() || undefined, 
+      description: form.description.trim() || undefined, 
+      blocks: blocksPayload.length? blocksPayload: undefined,
+      image: createImage || undefined
+    } as any);
+    if (ok) { 
+      setForm({ name: '', address: '', size: '', description: '' }); 
+      setCreateBlocks([]);
+      setCreateImage(null);
+      setCreateImagePreview(null);
+      setCreateApartmentImages({});
+      setShowAddModal(false); 
+    }
   };
 
   const openEstate = (id: number) => {
@@ -72,6 +94,9 @@ export default function EstatesPage() {
     const est = estates.find(e => e.id === estateId);
     if (est) {
       setEditForm({ name: est.name || '', address: est.address || '', size: est.size || '', description: est.description || '' });
+      setEditImage(null);
+      setEditImagePreview(est.image || null);
+      setEditApartmentImages({});
       const structure = structureCache[estateId];
       if (structure?.blocks) {
         setEditBlocks(structure.blocks.map((b:any)=> ({
@@ -88,7 +113,7 @@ export default function EstatesPage() {
             number_of_rooms:a.number_of_rooms||'',
             color:a.color||'',
             description:a.description||'',
-            // Store both ID and name mapping for cleaner UI while preserving IDs for API
+            existingImage: a.image || null,
             amenityIds:(a.amenities||[]).map((am:any)=>am.id),
             amenities: Array.isArray(a.amenities) && a.amenities.length > 0 && typeof a.amenities[0] === 'object' ? a.amenities.map((am:any)=>am.id) : (a.amenities || [])
           }))
@@ -116,11 +141,24 @@ export default function EstatesPage() {
         number_of_rooms:a.number_of_rooms||undefined,
         color:a.color||undefined,
         description:a.description||undefined,
-        amenities:a.amenities||[]
+        amenities:a.amenities||[],
+        image: editApartmentImages[a.id || a.tempId]?.file || undefined
       }))
     })).filter(b=> b.name);
-    const ok = await updateEstate(showEditModal, { name: editForm.name || undefined, address: editForm.address || undefined, size: editForm.size || undefined, description: editForm.description || undefined, blocks: blocksPayload.length? blocksPayload: undefined } as any);
-    if (ok) setShowEditModal(null);
+    const ok = await updateEstate(showEditModal, { 
+      name: editForm.name || undefined, 
+      address: editForm.address || undefined, 
+      size: editForm.size || undefined, 
+      description: editForm.description || undefined, 
+      blocks: blocksPayload.length? blocksPayload: undefined,
+      image: editImage || undefined
+    } as any);
+    if (ok) {
+      setEditImage(null);
+      setEditImagePreview(null);
+      setEditApartmentImages({});
+      setShowEditModal(null);
+    }
   };
 
   const handleDeleteEstate = async (id:number) => {
@@ -185,6 +223,7 @@ export default function EstatesPage() {
             number_of_rooms:a.number_of_rooms||'',
             color:a.color||'',
             description:a.description||'',
+            existingImage: a.image || null,
             amenityIds:(a.amenities||[]).map((am:any)=>am.id),
             amenities: Array.isArray(a.amenities) && a.amenities.length > 0 && typeof a.amenities[0] === 'object' ? a.amenities.map((am:any)=>am.id) : (a.amenities || [])
           }))
@@ -204,34 +243,86 @@ export default function EstatesPage() {
       });
   };
 
+  const handleCreateImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCreateImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCreateImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEditImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCreateApartmentImageChange = (blockTempId: string, aptTempId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCreateApartmentImages(prev => ({
+          ...prev,
+          [aptTempId]: { file, preview: reader.result as string }
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditApartmentImageChange = (blockId: string, aptId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditApartmentImages(prev => ({
+          ...prev,
+          [aptId]: { file, preview: reader.result as string }
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeCreateImage = () => {
+    setCreateImage(null);
+    setCreateImagePreview(null);
+  };
+
+  const removeEditImage = () => {
+    setEditImage(null);
+    setEditImagePreview(null);
+  };
+
+  const removeCreateApartmentImage = (aptTempId: string) => {
+    setCreateApartmentImages(prev => {
+      const copy = { ...prev };
+      delete copy[aptTempId];
+      return copy;
+    });
+  };
+
+  const removeEditApartmentImage = (aptId: string) => {
+    setEditApartmentImages(prev => {
+      const copy = { ...prev };
+      delete copy[aptId];
+      return copy;
+    });
+  };
+
   return (
     <div className="min-h-screen p-4 lg:p-6 xl:p-8 relative overflow-hidden">
-      {/* Creative SVG Blobs */}
-      {/* <div className="absolute top-10 left-20 w-48 h-48 opacity-20" style={{ transform: 'rotate(45deg)' }}>
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <path d="M50 10c20 0 30 20 30 40s-10 40-30 40S10 70 10 50 30 10 50 10z" fill="#3b82f6" />
-        </svg>
-      </div>
-      <div className="absolute top-40 right-32 w-36 h-36 opacity-15" style={{ transform: 'rotate(-30deg)' }}>
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <path d="M30 20c15-5 35 5 40 25s-5 35-25 40S15 75 10 55 15 25 30 20z" fill="#10b981" />
-        </svg>
-      </div>
-      <div className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10" style={{ transform: 'rotate(60deg)' }}>
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 30c10-10 30-10 40 0s10 30 0 40-30 10-40 0S10 40 20 30z" fill="#f59e0b" />
-        </svg>
-      </div>
-      <div className="absolute top-1/3 right-10 w-40 h-40 opacity-25" style={{ transform: 'rotate(120deg)' }}>
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <path d="M40 10c15 5 25 25 20 40s-25 25-40 20S5 55 10 40 25 5 40 10z" fill="#ef4444" />
-        </svg>
-      </div>
-      <div className="absolute bottom-10 right-1/3 w-52 h-52 opacity-20" style={{ transform: 'rotate(-45deg)' }}>
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <path d="M50 5c20 10 25 35 15 50s-35 25-50 15S-5 55 5 40 30-5 50 5z" fill="#8b5cf6" />
-        </svg>
-      </div> */}
       <div className="max-w-none mx-auto relative z-10">
         {/* Header */}
         <div className="backdrop-blur-md bg-white/70 border border-white/20 rounded-3xl shadow-xl mb-8 p-6">
@@ -917,6 +1008,40 @@ export default function EstatesPage() {
       {showAddModal && (
         <Modal onClose={() => !creating && setShowAddModal(false)} title="Create Estate" icon="add_business">
           <form onSubmit={handleCreate} className="space-y-8">
+            {/* Image Upload */}
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                <span className="material-icons text-[14px] text-blue-500">image</span>
+                Estate Image
+              </label>
+              {createImagePreview ? (
+                <div className="relative w-full h-48 rounded-xl overflow-hidden border border-white/30">
+                  <img src={createImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={removeCreateImage}
+                    className="absolute top-2 right-2 p-2 rounded-lg bg-rose-500 text-white hover:bg-rose-600 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/30 rounded-xl bg-white/50 hover:bg-white/70 cursor-pointer transition">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <span className="material-icons text-4xl text-gray-400 mb-3">cloud_upload</span>
+                    <p className="text-sm text-gray-600 font-medium">Click to upload image</p>
+                    <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleCreateImageChange}
+                  />
+                </label>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Input label="Name *" required value={form.name} onChange={v=>setForm(f=>({...f,name:v}))} placeholder="e.g. Sunset Gardens" />
               <Input label="Size" value={form.size} onChange={v=>setForm(f=>({...f,size:v}))} placeholder="e.g. 5 acres" />
@@ -1077,6 +1202,40 @@ export default function EstatesPage() {
       {showEditModal && (
         <Modal onClose={() => setShowEditModal(null)} title="Edit Estate" icon="edit">
           <form onSubmit={handleEdit} className="space-y-8">
+            {/* Image Upload */}
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                <span className="material-icons text-[14px] text-blue-500">image</span>
+                Estate Image
+              </label>
+              {editImagePreview ? (
+                <div className="relative w-full h-48 rounded-xl overflow-hidden border border-white/30">
+                  <img src={editImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={removeEditImage}
+                    className="absolute top-2 right-2 p-2 rounded-lg bg-rose-500 text-white hover:bg-rose-600 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/30 rounded-xl bg-white/50 hover:bg-white/70 cursor-pointer transition">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <span className="material-icons text-4xl text-gray-400 mb-3">cloud_upload</span>
+                    <p className="text-sm text-gray-600 font-medium">Click to upload image</p>
+                    <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleEditImageChange}
+                  />
+                </label>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Input label="Name" value={editForm.name} onChange={v=>setEditForm(f=>({...f,name:v}))} />
               <Input label="Size" value={editForm.size} onChange={v=>setEditForm(f=>({...f,size:v}))} />
@@ -1146,76 +1305,112 @@ export default function EstatesPage() {
                       </div>
                       {(!b.apartments || b.apartments.length===0) && <p className="text-[10px] text-gray-400">No apartments</p>}
                       <div className="space-y-4 max-h-48 overflow-auto pr-2">
-                        {b.apartments?.map((a:any)=> (
-                          <div key={a.id||a.tempId} className="p-4 rounded-lg border bg-white/70 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <p className="text-[10px] font-medium text-gray-600">Apartment</p>
-                              {!a.existing && (
-                                <button
-                                  type="button"
-                                  onClick={()=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.filter((ap:any)=> (ap.id||ap.tempId)!==(a.id||a.tempId))}:x))}
-                                  className="text-rose-500 hover:text-rose-600"
-                                >
-                                  <span className="material-icons text-[16px]">close</span>
-                                </button>
-                              )}
-                            </div>
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                              <input
-                                placeholder="Number"
-                                value={a.number}
-                                onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, number:e.target.value}:ap)}:x))}
-                                className="px-2 py-1 rounded border bg-white/70 text-[10px]"
-                              />
-                              <input
-                                placeholder="Rent"
-                                value={a.rent_amount||''}
-                                onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, rent_amount:e.target.value}:ap)}:x))}
-                                className="px-2 py-1 rounded border bg-white/70 text-[10px]"
-                              />
-                              <input
-                                placeholder="Size"
-                                value={a.size||''}
-                                onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, size:e.target.value}:ap)}:x))}
-                                className="px-2 py-1 rounded border bg-white/70 text-[10px]"
-                              />
-                              <input
-                                placeholder="Rooms"
-                                value={a.number_of_rooms||''}
-                                onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, number_of_rooms:e.target.value}:ap)}:x))}
-                                className="px-2 py-1 rounded border bg-white/70 text-[10px]"
-                              />
-                              <input
-                                placeholder="Color"
-                                value={a.color||''}
-                                onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, color:e.target.value}:ap)}:x))}
-                                className="px-2 py-1 rounded border bg-white/70 text-[10px]"
-                              />
-                              <div className="col-span-2 lg:col-span-4">
-                                <p className="text-[10px] font-medium text-gray-500 mb-2">Amenities</p>
-                                <div className="flex flex-wrap gap-3 max-h-24 overflow-auto">
-                                  {amenities.map(am=> (
-                                    <label key={am.id} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border bg-white/60">
-                                      <input
-                                        type="checkbox"
-                                        className="accent-blue-600"
-                                        checked={(a.amenities||[]).includes(am.id)}
-                                        onChange={()=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, amenities:(ap.amenities||[]).includes(am.id)? ap.amenities.filter((id:number)=>id!==am.id): [...(ap.amenities||[]), am.id]}:ap)}:x))}
-                                      />
-                                      {am.name}
-                                    </label>
-                                  ))}
-                                </div>
+                        {b.apartments?.map((a:any)=> {
+                          const aptKey = a.id || a.tempId;
+                          const imagePreview = editApartmentImages[aptKey]?.preview || a.existingImage;
+                          return (
+                            <div key={aptKey} className="p-4 rounded-lg border bg-white/70 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <p className="text-[10px] font-medium text-gray-600">Apartment</p>
+                                {!a.existing && (
+                                  <button
+                                    type="button"
+                                    onClick={()=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.filter((ap:any)=> (ap.id||ap.tempId)!==(a.id||a.tempId))}:x))}
+                                    className="text-rose-500 hover:text-rose-600"
+                                  >
+                                    <span className="material-icons text-[16px]">close</span>
+                                  </button>
+                                )}
                               </div>
-                              <input
-                                placeholder="Description"
-                                value={a.description||''}
-                                onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, description:e.target.value}:ap)}:x))}
-                                className="col-span-3 px-2 py-1 rounded border bg-white/70 text-[10px]"
-                              />
+                              {/* Apartment Image Upload */}
+                              <div className="col-span-4">
+                                <p className="text-[10px] font-medium text-gray-500 mb-2">Apartment Image</p>
+                                {imagePreview ? (
+                                  <div className="relative w-full h-32 rounded-lg overflow-hidden border border-white/30">
+                                    <img 
+                                      src={imagePreview} 
+                                      alt="Apartment preview" 
+                                      className="w-full h-full object-cover" 
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => removeEditApartmentImage(aptKey)}
+                                      className="absolute top-1 right-1 p-1 rounded bg-rose-500 text-white hover:bg-rose-600"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/30 rounded-lg bg-white/50 hover:bg-white/70 cursor-pointer">
+                                    <span className="material-icons text-2xl text-gray-400">add_photo_alternate</span>
+                                    <p className="text-[10px] text-gray-500 mt-1">Click to upload</p>
+                                    <input
+                                      type="file"
+                                      className="hidden"
+                                      accept="image/*"
+                                      onChange={(e) => handleEditApartmentImageChange(String(b.id||b.tempId), aptKey, e)}
+                                    />
+                                  </label>
+                                )}
+                              </div>
+
+                              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                <input
+                                  placeholder="Number"
+                                  value={a.number}
+                                  onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, number:e.target.value}:ap)}:x))}
+                                  className="px-2 py-1 rounded border bg-white/70 text-[10px]"
+                                />
+                                <input
+                                  placeholder="Rent"
+                                  value={a.rent_amount||''}
+                                  onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, rent_amount:e.target.value}:ap)}:x))}
+                                  className="px-2 py-1 rounded border bg-white/70 text-[10px]"
+                                />
+                                <input
+                                  placeholder="Size"
+                                  value={a.size||''}
+                                  onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, size:e.target.value}:ap)}:x))}
+                                  className="px-2 py-1 rounded border bg-white/70 text-[10px]"
+                                />
+                                <input
+                                  placeholder="Rooms"
+                                  value={a.number_of_rooms||''}
+                                  onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, number_of_rooms:e.target.value}:ap)}:x))}
+                                  className="px-2 py-1 rounded border bg-white/70 text-[10px]"
+                                />
+                                <input
+                                  placeholder="Color"
+                                  value={a.color||''}
+                                  onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, color:e.target.value}:ap)}:x))}
+                                  className="px-2 py-1 rounded border bg-white/70 text-[10px]"
+                                />
+                                <div className="col-span-2 lg:col-span-4">
+                                  <p className="text-[10px] font-medium text-gray-500 mb-2">Amenities</p>
+                                  <div className="flex flex-wrap gap-3 max-h-24 overflow-auto">
+                                    {amenities.map(am=> (
+                                      <label key={am.id} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded border bg-white/60">
+                                        <input
+                                          type="checkbox"
+                                          className="accent-blue-600"
+                                          checked={(a.amenities||[]).includes(am.id)}
+                                          onChange={()=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, amenities:(ap.amenities||[]).includes(am.id)? ap.amenities.filter((id:number)=>id!==am.id): [...(ap.amenities||[]), am.id]}:ap)}:x))}
+                                        />
+                                        {am.name}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                                <input
+                                  placeholder="Description"
+                                  value={a.description||''}
+                                  onChange={e=>setEditBlocks(list=> list.map(x=> (x.id||x.tempId)===(b.id||b.tempId)? {...x, apartments:x.apartments.map((ap:any)=> (ap.id||ap.tempId)===(a.id||a.tempId)? {...ap, description:e.target.value}:ap)}:x))}
+                                  className="col-span-3 px-2 py-1 rounded border bg-white/70 text-[10px]"
+                                />
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -1237,202 +1432,3 @@ export default function EstatesPage() {
   );
 }
 
-/* Reusable UI atoms */
-function MetricMini({ icon, label, value, color }:{icon:string;label:string;value:any;color:string}) {
-  return (
-    <div className="relative p-3 rounded-2xl bg-white/60 backdrop-blur border border-white/30 flex flex-col items-center justify-center shadow">
-      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${color} opacity-10`} />
-      <span className="material-icons text-[18px] text-gray-700 mb-1">{icon}</span>
-      <p className="text-xs font-medium text-gray-500 tracking-wide">{label}</p>
-      <p className="text-sm font-bold text-gray-900">{value}</p>
-    </div>
-  );
-}
-
-/* NEW: MiniStatMobile helper (mobile only) */
-function MiniStatMobile({ label, value }:{label:string; value:any}) {
-  return (
-    <div className="p-2 rounded-lg bg-white/60 border border-white/30 flex flex-col items-center">
-      <span className="text-[10px] text-gray-500 font-medium">{label}</span>
-      <span className="text-sm font-semibold text-gray-800">{value}</span>
-    </div>
-  );
-}
-
-/* UPDATED: Modal for PC optimization */
-function Modal({ children, onClose, title, icon }:{children:React.ReactNode;onClose:()=>void;title:string;icon:string}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] xl:max-w-6xl max-w-none sm:max-w-lg overflow-y-auto backdrop-blur-xl bg-white/90 sm:bg-white/80 rounded-none sm:rounded-3xl shadow-2xl border border-white/30 p-6 sm:p-8 xl:p-16">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <Building className="w-5 h-5 text-blue-600" />
-              {title}
-            </h2>
-            <p className="text-xs text-gray-500 mt-1">
-              {icon==='edit'?'Update estate information':'Add a new managed estate to the portfolio.'}
-            </p>
-          </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/60 transition">
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function Input({ label, value, onChange, required, placeholder, className='' }:{label:string;value:string;onChange:(v:string)=>void;required?:boolean;placeholder?:string;className?:string}) {
-  return (
-    <div className={className}>
-      <label className="block text-xs font-medium text-gray-600 mb-1">
-        {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <input
-        value={value}
-        required={required}
-        onChange={e=>onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full px-4 py-3 rounded-xl bg-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-      />
-    </div>
-  );
-}
-
-function Textarea({ label, value, onChange, placeholder, className='' }:{label:string;value:string;onChange:(v:string)=>void;placeholder?:string;className?:string}) {
-  return (
-    <div className={className}>
-      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
-      <textarea
-        rows={3}
-        value={value}
-        onChange={e=>onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full px-4 py-3 rounded-2xl bg-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
-      />
-    </div>
-  );
-}
-
-function Button({ children, type='button', variant='primary', icon, loading, onClick }:{children:React.ReactNode;type?:'button'|'submit';variant?:'primary'|'secondary';icon?:string;loading?:boolean;onClick?:()=>void}) {
-  const base = 'px-6 py-3 rounded-xl text-sm font-medium flex items-center gap-2 transition shadow';
-  const styles = variant==='primary' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-xl hover:scale-[1.02]' : 'bg-white/60 backdrop-blur border border-white/30 text-gray-700 hover:bg-white/80';
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={loading}
-      className={`${base} ${styles} disabled:opacity-60 disabled:cursor-not-allowed`}
-    >
-      {loading && <span className="material-icons text-sm animate-spin">progress_activity</span>}
-      {icon && !loading && <span className="material-icons text-sm">{icon}</span>}
-      {children}
-    </button>
-  );
-}
-function Th({ children }:{children?:React.ReactNode}) {
-  return <th className="px-4 py-3 text-left font-semibold">{children}</th>;
-}
-function Td({ children }:{children:React.ReactNode}) {
-  return <td className="px-4 py-3 align-top">{children}</td>;
-}
-
-// Add helper component near the UI atoms (inserted into the same file)
-function ApartmentPreview({ apt }:{apt:any}) {
-  const rooms = Math.max(1, Number(apt.number_of_rooms) || 1);
-  const color = apt.color || '#60a5fa';
-  const rent = apt.rent_amount ? String(apt.rent_amount) : '—';
-  const imgUrl = (
-    apt.image_url ||
-    apt.image ||
-    '/bg-2.jpg'
-  );
-  const roomRects = Array.from({ length: rooms }).map((_, i) => {
-    // arrange rectangles in a simple grid
-    const cols = rooms > 3 ? 3 : rooms;
-    const row = Math.floor(i / cols);
-    const col = i % cols;
-    const w = 28 / cols;
-    const h = 28 / Math.ceil(rooms / cols);
-    const x = 4 + col * (w + 2);
-    const y = 6 + row * (h + 2);
-    return { x, y, w, h };
-  });
-
-  return (
-    <div className="w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gradient-to-br from-white/10 to-white/5 border border-white/20 group relative">
-      <div className="w-full h-full relative">
-        {imgUrl ? (
-          <img src={imgUrl} alt={apt.number || 'Apartment'} className="w-full h-full object-cover block" />
-        ) : (
-          <svg viewBox="0 0 36 24" className="w-full h-full block">
-            <defs>
-              <linearGradient id={`g-${apt.id}`} x1="0" x2="1">
-                <stop offset="0" stopColor={color} stopOpacity="0.18" />
-                <stop offset="1" stopColor="#ffffff" stopOpacity="0.06" />
-              </linearGradient>
-            </defs>
-            <rect x="1" y="1" width="34" height="22" rx="2" fill={`url(#g-${apt.id})`} stroke="rgba(0,0,0,0.04)" />
-            {roomRects.map((r, idx) => (
-              <rect
-                key={idx}
-                x={r.x}
-                y={r.y}
-                width={r.w}
-                height={r.h}
-                rx="0.6"
-                fill={idx % 2 === 0 ? color : '#ffffff'}
-                fillOpacity={idx % 2 === 0 ? 0.12 : 0.06}
-                stroke="rgba(0,0,0,0.03)"
-              />
-            ))}
-            <text x="4" y="18" fontSize="2.2" fill="#374151" opacity="0.8">{apt.number || 'Unit'}</text>
-          </svg>
-        )}
-
-        {/* hover overlay */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-[11px] text-white">
-          <div className="text-center leading-tight">
-            <div className="font-semibold text-sm">{apt.number || 'Unit'}</div>
-            <div className="text-[11px] opacity-90">{apt.size ? `${apt.size}m²` : ''} {apt.number_of_rooms ? `• ${apt.number_of_rooms}r` : ''}</div>
-            {apt.description && <div className="mt-1 text-[10px] opacity-90 line-clamp-2">{apt.description}</div>}
-          </div>
-        </div>
-
-        {/* rent badge */}
-        <div className="absolute bottom-1 left-1">
-          <div className="px-2 py-0.5 bg-white/90 text-xs rounded text-gray-800 font-semibold">
-            {rent}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Thumbnail preview for estates: uses `estate.image_url` if present, else fallback avatar
-function EstatePreview({ estate }:{estate:any}) {
-  const url = estate.image_url || estate.image || '/bg-1.jpg';
-  const initials = String(estate.name || '?')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s:string)=>s[0]?.toUpperCase())
-    .join('');
-  return (
-    <div className="w-24 h-16 rounded-xl overflow-hidden bg-white/60 border border-white/30 flex items-center justify-center">
-      {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt={estate.name} className="w-full h-full object-cover" />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 font-semibold">
-          {initials || 'ES'}
-        </div>
-      )}
-    </div>
-  );
-}

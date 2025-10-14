@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import axios from 'axios';
 import type { RootState } from '../store';
 import type { LoginResponse } from './authSlice';
 
@@ -7,20 +8,34 @@ interface LoginRequest {
   password: string;
 }
 
+// Custom axios base query
+const axiosBaseQuery = ({ baseUrl }: { baseUrl: string }) => async ({ url, method, data, params, headers: customHeaders }: any) => {
+  try {
+    const result = await axios({
+      url: baseUrl + url,
+      method,
+      data,
+      params,
+      headers: {
+        'Content-Type': 'application/json',
+        ...customHeaders,
+      },
+    });
+    return { data: result.data };
+  } catch (axiosError: any) {
+    return {
+      error: {
+        status: axiosError.response?.status,
+        data: axiosError.response?.data,
+      },
+    };
+  }
+};
+
 // Base API slice
 export const apiSlice = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({
-    baseUrl: 'http://127.0.0.1:8000',
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      headers.set('Content-Type', 'application/json');
-      return headers;
-    },
-  }),
+  baseQuery: axiosBaseQuery({ baseUrl: 'http://localhost:8000' }),
   tagTypes: ['Property', 'Tenant', 'Payment', 'Complaint', 'User'],
   endpoints: (builder) => ({
     // Authentication endpoints
@@ -28,7 +43,8 @@ export const apiSlice = createApi({
       query: (credentials) => ({
         url: '/api/token/',
         method: 'POST',
-        body: credentials,
+        data: credentials,
+        headers: {}, // No auth needed for login
       }),
     }),
     
@@ -36,7 +52,8 @@ export const apiSlice = createApi({
       query: ({ refresh }) => ({
         url: '/api/token/refresh/',
         method: 'POST',
-        body: { refresh },
+        data: { refresh },
+        headers: {}, // No auth needed for refresh
       }),
     }),
 
@@ -45,6 +62,10 @@ export const apiSlice = createApi({
       query: () => ({
         url: '/api/profile/',
         method: 'GET',
+        headers: (getState: () => RootState) => {
+          const token = getState().auth.token;
+          return token ? { authorization: `Bearer ${token}` } : {};
+        },
       }),
       providesTags: ['User'],
     }),
@@ -54,7 +75,8 @@ export const apiSlice = createApi({
       query: (userData) => ({
         url: '/api/register/',
         method: 'POST',
-        body: userData,
+        data: userData,
+        headers: {}, // Assuming no auth for registration
       }),
     }),
   }),

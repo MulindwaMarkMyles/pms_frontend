@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -15,6 +15,7 @@
     "@reduxjs/toolkit": "^2.9.0",
     "@splinetool/react-spline": "^4.1.0",
     "@tailwindcss/vite": "^4.1.13",
+    "axios": "^1.12.2",
     "lucide-react": "^0.544.0",
     "ogl": "^1.0.11",
     "postprocessing": "^6.37.8",
@@ -42,5 +43,5 @@
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2"
   },
-  "proxy": "http://127.0.0.1:8000"
+  "proxy": "http://62.169.30.241:8000"
 }

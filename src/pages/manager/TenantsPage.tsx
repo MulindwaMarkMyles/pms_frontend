@@ -14,7 +14,7 @@ export default function TenantsPage() {
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const emptyForm = { username:'', email:'', first_name:'', last_name:'', password:'', tenant_type:'', apartment:'', lease_start:'', lease_end:'', phone_number:'', emergency_contact:'' };
+  const emptyForm = { username:'', email:'', first_name:'', last_name:'', password:'', tenant_type:'', apartment:'', lease_start:'', lease_end:'', phone_number:'', emergency_contact:'', userprofile_status: 'active' };
   const [createForm, setCreateForm] = useState({...emptyForm});
   const [editForm, setEditForm] = useState({...emptyForm, password: undefined as any});
 
@@ -26,6 +26,8 @@ export default function TenantsPage() {
       user.avatar_url || user.image_url || user.photo || user.avatar || user.profile_picture ||
       anyT.avatar_url || anyT.image_url || anyT.photo || anyT.avatar || null
     );
+    // Check userprofile_status from tenant data, default to 'active' if undefined/null
+    const isActive = anyT.userprofile_status !== 'inactive';
     // lease status + days left
     let rentStatus: 'paid'|'pending'|'overdue' = 'paid';
     let daysLeft: number | null = null;
@@ -43,7 +45,7 @@ export default function TenantsPage() {
     const estateName = estate.name || '';
     const blockName = block.name || '';
     const tenantTypeName = (anyT.tenant_type_details && anyT.tenant_type_details.name) || '';
-    return { ...anyT, rentStatus, name, email: user.email, apartmentLabel, estateName, blockName, tenantTypeName, daysLeft, avatarUrl };
+    return { ...anyT, rentStatus, name, email: user.email, apartmentLabel, estateName, blockName, tenantTypeName, daysLeft, avatarUrl, isActive };
   };
 
   const computed = tenants.map(decorateTenant);
@@ -75,7 +77,8 @@ export default function TenantsPage() {
       username: user.username||'', email:user.email||'', first_name:user.first_name||'', last_name:user.last_name||'', password: '' as any,
       tenant_type: (t.tenant_type || t.tenant_type_details?.id || '') + '',
       apartment: (t.apartment || t.apartment_details?.id || '') + '',
-      lease_start: t.lease_start || '', lease_end: t.lease_end || '', phone_number: t.phone_number||'', emergency_contact: t.emergency_contact||''
+      lease_start: t.lease_start || '', lease_end: t.lease_end || '', phone_number: t.phone_number||'', emergency_contact: t.emergency_contact||'',
+      userprofile_status: t.userprofile_status || 'active'
     });
     setShowEditModal(tenantId);
   };
@@ -86,10 +89,11 @@ export default function TenantsPage() {
     setCreating(true);
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch('/api/tenants/tenants/', { method:'POST', headers:{ 'Authorization':`Bearer ${token||''}`, 'Content-Type':'application/json' }, body: JSON.stringify({
+      const res = await fetch('http://localhost:8000/api/tenants/tenants/', { method:'POST', headers:{ 'Authorization':`Bearer ${token||''}`, 'Content-Type':'application/json' }, body: JSON.stringify({
         user:{ username:createForm.username, email:createForm.email, first_name:createForm.first_name, last_name:createForm.last_name, password:createForm.password },
         tenant_type: parseInt(createForm.tenant_type), apartment: parseInt(createForm.apartment), lease_start:createForm.lease_start, lease_end:createForm.lease_end,
-        phone_number: createForm.phone_number||undefined, emergency_contact:createForm.emergency_contact||undefined
+        phone_number: createForm.phone_number||undefined, emergency_contact:createForm.emergency_contact||undefined,
+        userprofile_status: createForm.userprofile_status
       }) });
       if (!res.ok) { const j = await res.json().catch(()=>({error:'Create failed'})); throw new Error(j.error||'Create failed'); }
       setShowAddModal(false); setCreateForm({...emptyForm}); refresh();
@@ -100,20 +104,28 @@ export default function TenantsPage() {
     setUpdating(true);
     try {
       const token = localStorage.getItem('access_token');
-      const payload:any = { tenant_type: parseInt(editForm.tenant_type), apartment: parseInt(editForm.apartment), lease_start: editForm.lease_start, lease_end: editForm.lease_end, phone_number: editForm.phone_number||undefined, emergency_contact: editForm.emergency_contact||undefined };
+      const payload:any = { 
+        tenant_type: parseInt(editForm.tenant_type), 
+        apartment: parseInt(editForm.apartment), 
+        lease_start: editForm.lease_start, 
+        lease_end: editForm.lease_end, 
+        phone_number: editForm.phone_number||undefined, 
+        emergency_contact: editForm.emergency_contact||undefined,
+        userprofile_status: editForm.userprofile_status
+      };
       payload.user = { username: editForm.username, email: editForm.email, first_name: editForm.first_name, last_name: editForm.last_name };
-      const res = await fetch(`/api/tenants/tenants/${showEditModal}/`, { method:'PATCH', headers:{ 'Authorization':`Bearer ${token||''}`, 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+      const res = await fetch(`http://localhost:8000/api/tenants/tenants/${showEditModal}/`, { method:'PATCH', headers:{ 'Authorization':`Bearer ${token||''}`, 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) { const j = await res.json().catch(()=>({error:'Update failed'})); throw new Error(j.error||'Update failed'); }
-      setShowEditModal(null); refresh();
+      setShowEditModal(null); refresh();[]
     } catch(err:any){ setFormError(err.message); } finally { setUpdating(false); }
   };
 
   useEffect(()=> {
     const token = localStorage.getItem('access_token');
     const headers: any = { 'Authorization': `Bearer ${token||''}`, 'Content-Type':'application/json' };
-    fetch('/api/tenants/tenant-types/', { headers }).then(r=>r.ok?r.json():[]).then(d=> Array.isArray(d)&& setTenantTypes(d));
+    fetch('http://localhost:8000/api/tenants/tenant-types/', { headers }).then(r=>r.ok?r.json():[]).then(d=> Array.isArray(d)&& setTenantTypes(d));
     // FIX: Use all apartments instead of available to ensure selection works
-    fetch('/api/core/apartments/', { headers })
+    fetch('http://localhost:8000/api/core/apartments/', { headers })
       .then(r => {
         if (!r.ok) throw new Error(`Fetch failed: ${r.status}`);
         return r.json();
@@ -220,9 +232,15 @@ export default function TenantsPage() {
                       <div className={`absolute inset-x-0 top-0 h-1.5 ${rentStatus==='paid' ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : rentStatus==='pending' ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-rose-400 to-rose-500'}`} />
                     </div>
                     <div className="relative p-6 pt-7 space-y-5">
-                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1 shadow-sm bg-white/70 backdrop-blur">
-                        <span className={`material-icons text-[14px] ${rentStatus==='paid' ? 'text-emerald-600' : rentStatus==='pending' ? 'text-amber-600' : 'text-rose-600'}`}>{getStatusIcon(rentStatus)}</span>
-                        <span className="capitalize text-gray-700">{rentStatus}</span>
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        <span className={`px-3 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1 shadow-sm bg-white/70 backdrop-blur ${tenant.isActive ? 'border-emerald-200 text-emerald-700' : 'border-gray-300 text-gray-600'}`}>
+                          <span className={`material-icons text-[14px] ${tenant.isActive ? 'text-emerald-600' : 'text-gray-500'}`}>{tenant.isActive ? 'check_circle' : 'cancel'}</span>
+                          <span>{tenant.isActive ? 'Active' : 'Inactive'}</span>
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-[11px] font-medium border flex items-center gap-1 shadow-sm bg-white/70 backdrop-blur ${getStatusColor(rentStatus)}`}>
+                          <span className={`material-icons text-[14px] ${rentStatus==='paid' ? 'text-emerald-600' : rentStatus==='pending' ? 'text-amber-600' : 'text-rose-600'}`}>{getStatusIcon(rentStatus)}</span>
+                          <span className="capitalize">{rentStatus}</span>
+                        </span>
                       </div>
                       {/* Header */}
                       <div className="flex items-center gap-4">
@@ -292,9 +310,15 @@ export default function TenantsPage() {
                   <div className="space-y-5">
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">{initials(activeTenant.name)}</div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <h2 className="text-xl font-bold text-gray-800 truncate">{activeTenant.name}</h2>
                         <p className="text-xs text-indigo-600 flex items-center gap-1"><span className="material-icons text-[14px]">domain</span>{activeTenant.apartment || '—'}</p>
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${activeTenant.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                            <span className="material-icons text-[12px]">{activeTenant.isActive ? 'check_circle' : 'cancel'}</span>
+                            {activeTenant.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-xs">
@@ -337,6 +361,30 @@ export default function TenantsPage() {
                 <Input label="Last Name *" value={createForm.last_name} onChange={v=>setCreateForm(f=>({...f,last_name:v}))} />
                 <Input label="Password *" type="password" value={createForm.password} onChange={v=>setCreateForm(f=>({...f,password:v}))} className="col-span-2" />
               </div>
+              <div className="mt-4">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-white/10 to-white/5 border border-white/20 backdrop-blur">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${createForm.userprofile_status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-500/20 text-gray-400'} transition-colors`}>
+                      <span className="material-icons text-lg">{createForm.userprofile_status === 'active' ? 'check_circle' : 'cancel'}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-700">Account Status</p>
+                      <p className="text-xs text-gray-500">
+                        {createForm.userprofile_status === 'active' ? 'User can log in and access the system' : 'User login is disabled'}
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={createForm.userprofile_status === 'active'}
+                      onChange={e => setCreateForm(f => ({ ...f, userprofile_status: e.target.checked ? 'active' : 'inactive' }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+              </div>
             </Section>
             <Section title="Tenancy Details">
               <div className="grid grid-cols-2 gap-4 text-xs">
@@ -366,6 +414,30 @@ export default function TenantsPage() {
                 <Input label="Email *" value={editForm.email} onChange={v=>setEditForm(f=>({...f,email:v}))} />
                 <Input label="First Name *" value={editForm.first_name} onChange={v=>setEditForm(f=>({...f,first_name:v}))} />
                 <Input label="Last Name *" value={editForm.last_name} onChange={v=>setEditForm(f=>({...f,last_name:v}))} />
+              </div>
+              <div className="mt-4">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-white/10 to-white/5 border border-white/20 backdrop-blur">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${editForm.userprofile_status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-500/20 text-gray-400'} transition-colors`}>
+                      <span className="material-icons text-lg">{editForm.userprofile_status === 'active' ? 'check_circle' : 'cancel'}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-700">Account Status</p>
+                      <p className="text-xs text-gray-500">
+                        {editForm.userprofile_status === 'active' ? 'User can log in and access the system' : 'User login is disabled'}
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editForm.userprofile_status === 'active'}
+                      onChange={e => setEditForm(f => ({ ...f, userprofile_status: e.target.checked ? 'active' : 'inactive' }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
               </div>
             </Section>
             <Section title="Tenancy Details">

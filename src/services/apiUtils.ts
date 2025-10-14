@@ -1,5 +1,6 @@
 import { store } from '../store';
 import { updateTokens, logout } from './authSlice';
+import axios from 'axios';
 
 // API utility for making authenticated requests with auto token refresh
 export const apiRequest = async (url: string, options: RequestInit = {}) => {
@@ -20,8 +21,11 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
   };
 
   // Make the request
-  let response = await fetch(`http://127.0.0.1:8000${url}`, {
-    ...options,
+  let response = await axios({
+    url,
+    method: options.method || 'GET',
+    data: options.body,
+    baseURL: 'http://localhost:8000',
     headers,
   });
 
@@ -32,33 +36,29 @@ export const apiRequest = async (url: string, options: RequestInit = {}) => {
     if (refreshToken) {
       try {
         // Attempt to refresh token
-        const refreshResponse = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
-          method: 'POST',
+        const refreshResponse = await axios.post('/api/token/refresh/', { refresh: refreshToken }, {
+          baseURL: 'http://localhost:8000',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ refresh: refreshToken }),
         });
 
-        if (refreshResponse.ok) {
-          const { access } = await refreshResponse.json();
-          
-          // Update token in store
-          store.dispatch(updateTokens({ access }));
-          
-          // Retry original request with new token
-          response = await fetch(`http://127.0.0.1:8000${url}`, {
-            ...options,
-            headers: {
-              ...headers,
-              'Authorization': `Bearer ${access}`,
-            },
-          });
-        } else {
-          // Refresh failed, logout user
-          store.dispatch(logout());
-          throw new Error('Session expired, please login again');
-        }
+        const { access } = refreshResponse.data;
+        
+        // Update token in store
+        store.dispatch(updateTokens({ access }));
+        
+        // Retry original request with new token
+        response = await axios({
+          url,
+          method: options.method || 'GET',
+          data: options.body,
+          baseURL: 'http://localhost:8000',
+          headers: {
+            ...headers,
+            'Authorization': `Bearer ${access}`,
+          },
+        });
       } catch (error) {
         store.dispatch(logout());
         throw new Error('Session expired, please login again');

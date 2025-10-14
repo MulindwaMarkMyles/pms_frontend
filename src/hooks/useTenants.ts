@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 
 export interface TenantApi {
   id: number;
@@ -12,7 +13,6 @@ export interface TenantApi {
   created_at?: string;
 }
 
-const apiBase = 'http://127.0.0.1:8000';
 const hdrs = () => ({ 'Authorization': `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' });
 
 export const useTenants = (filters?: { apartment_id?: number; tenant_type_id?: number; estate_id?: number }) => {
@@ -21,21 +21,20 @@ export const useTenants = (filters?: { apartment_id?: number; tenant_type_id?: n
   const [error, setError] = useState<string | null>(null);
 
   const buildUrl = () => {
-    if (filters?.estate_id) return `${apiBase}/api/tenants/tenants/by_estate/?estate_id=${filters.estate_id}`;
+    if (filters?.estate_id) return `/api/tenants/tenants/by_estate/?estate_id=${filters.estate_id}`;
     const params = new URLSearchParams();
     if (filters?.apartment_id) params.append('apartment_id', String(filters.apartment_id));
     if (filters?.tenant_type_id) params.append('tenant_type_id', String(filters.tenant_type_id));
     const qs = params.toString();
-    return `${apiBase}/api/tenants/tenants/${qs ? `?${qs}` : ''}`;
+    return `/api/tenants/tenants/${qs ? `?${qs}` : ''}`;
   };
 
   const fetchTenants = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const res = await fetch(buildUrl(), { headers: hdrs() });
-      if (!res.ok) throw new Error(`Failed (${res.status})`);
-      const json = await res.json();
-      setData(Array.isArray(json) ? json : []);
+      const res = await axios.get(buildUrl(), { baseURL: 'http://localhost:8000', headers: hdrs() });
+      setData(Array.isArray(res.data) ? res.data : []);
+      console.log(res.data);
     } catch (e:any) {
       setError(e.message);
     } finally { setLoading(false); }
